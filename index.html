@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Editor Online & Lista de Testes HTML</title>
+  <title>Páginas HTML Publicadas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNjY3ZWVhIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM3NjRiYTIiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNCIgZmlsbD0idXJsKCNhKSIgLz4KICA8cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNMjEgMThoOGw1IDkgNS05aDhsLTkgMTZ2MTJoLThWMzR6IiAvPgo8L3N2Zz4=">
   <style>
@@ -21,7 +21,7 @@
       margin: 0;
       font-family: 'Inter','Segoe UI',Arial,sans-serif;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
       min-height: 100vh;
     }
@@ -30,9 +30,9 @@
       border-radius: 22px;
       box-shadow: 0 20px 40px rgba(15,23,42,0.18);
       padding: 3rem 2rem;
-      max-width: 600px;
+      max-width: 520px;
       width: 99%;
-      margin: 28px auto 18px auto;
+      margin: 24px auto;
       border: 1.5px solid #313146;
       text-align: center;
     }
@@ -92,167 +92,54 @@
       margin-top: 6px;
       font-size: 15px;
     }
-    .editor {
-      background: #191924;
-      padding: 24px 16px;
-      margin-bottom: 24px;
-      border-radius: 18px;
-      box-shadow: 0 2px 16px rgba(99,102,241,0.17);
-    }
-    .editor h2 {
-      margin-top: 0;
-      margin-bottom: 14px;
-      background: linear-gradient(90deg,#6366f1,#4ef9fa);
-      color: transparent;
-      -webkit-background-clip: text;
-      background-clip: text;
-      font-size: 1.47rem;
-      font-weight: 700;
-    }
-    .editor textarea, .editor input {
-      width: 100%;
-      font-size: 15px;
-      padding: 14px 12px;
-      border-radius: 10px;
-      background: #27272a;
-      color: #f8f8f2;
-      border: 2px solid #313146;
-      margin-bottom: 10px;
-    }
-    .editor textarea { min-height: 140px; font-family: 'Fira Code', monospaced; resize: vertical;}
-    .editor .btn {
-      background: linear-gradient(135deg,#6366f1,#764ba2);
-      border: none; color: #fff;
-      border-radius: 8px; padding: 11px 18px; font-weight: bold; font-size: 15px; cursor: pointer;
-      margin-top: 6px; margin-bottom: 2px; transition: background 0.18s;
-    }
-    .editor .btn:hover { background: linear-gradient(135deg,#764ba2,#6366f1);}
-    .editor .status {font-size: 14px; color: #ffd65c; margin-top: 1rem;}
     @media (max-width:680px){
       .container { padding: 2.2rem 1.1rem;}
-      .editor {padding: 15px 7px;}
       .list-title{font-size:1.1rem;}
       .html-link{font-size:1rem;}
-      .editor h2{font-size:1.13rem;}
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="editor">
-      <h2>Editor Online de Teste HTML</h2>
-      <div>
-        <input type="text" id="filename" placeholder="nome-do-arquivo.html" value="pagina-teste.html">
-      </div>
-      <div>
-        <textarea id="content" placeholder="<html>Seu HTML aqui...</textarea>
-      </div>
-      <button class="btn" id="publishBtn">Publicar no repositório</button>
-      <div class="status" id="status"></div>
-    </div>
     <div class="hero-title">Páginas HTML Publicadas</div>
     <div class="hero-desc">
-      Veja e teste os arquivos listados abaixo. Só aparecem arquivos de teste: o editor permanece fixo acima :)
+      Navegue e teste as páginas HTML disponíveis no repositório.
     </div>
     <div class="list-title">Arquivos da pasta <strong>HTML/</strong>:</div>
     <div id="links" class="html-list"></div>
     <div id="empty" class="no-files" style="display:none">Nenhuma página .html encontrada.</div>
   </div>
   <script>
-    // Sua config real (credenciais):
+    // Apenas configure essas variáveis:
     const owner = "tehewdev";
     const repo = "teste-html";
     const dir = "HTML";
-    const tokenBin = "690bda10ae596e708f473581";
-    const tokenKey = "$2a$10$f9KK7vSowGnJI5elo/dAPurqjZAJ3bJaWnsinl/caDfgIcNt28kNi";
-    let githubToken = null;
-    
-    // Função para buscar o token do jsonbin
-    async function fetchToken(){
-      const url = `https://api.jsonbin.io/v3/b/${tokenBin}/latest`;
-      const response = await fetch(url, { headers: { 'X-Access-Key': tokenKey, 'X-Bin-Meta': 'false' } });
-      const data = await response.json();
-      return data.github_token;
-    }
-    // Publicar novo arquivo HTML
-    async function publishFile(){
-      const filename = document.getElementById("filename").value.trim();
-      const content = document.getElementById("content").value.trim();
-      const status = document.getElementById("status");
-      if(!filename || !filename.endsWith(".html")){
-        status.textContent = "Use um nome '.html' válido!";
-        return;
-      }
-      if(!content){ status.textContent = "Conteúdo do HTML vazio!"; return;}
-      status.textContent = "Publicando...";
-      if(!githubToken) githubToken = await fetchToken();
-      // Tenta salvar via GitHub API
-      try {
-        const path = `${dir}/${filename}`;
-        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-        // Verifica se já existe pra buscar SHA
-        let sha = null;
-        try {
-          const res = await fetch(url, { headers: { Authorization: `Bearer ${githubToken}` } });
-          if(res.ok){
-            const filedata = await res.json();
-            sha = filedata.sha;
+    fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dir}`)
+      .then(res => res.json())
+      .then(files => {
+        const links = document.getElementById("links");
+        const empty = document.getElementById("empty");
+        let count = 0;
+        files.forEach(file => {
+          // Só lista arquivos .html ignorando "index.html"
+          if(file.name.endsWith(".html") && file.name !== "index.html") {
+            const a = document.createElement("a");
+            a.href = `${dir}/${file.name}`;
+            a.className = "html-link";
+            a.textContent = file.name;
+            a.target = "_blank";
+            links.appendChild(a);
+            count++;
           }
-        }catch{}
-        // Monta payload
-        const payload = {
-          message: sha ? `Atualizando ${filename}` : `Criando ${filename}`,
-          content: btoa(unescape(encodeURIComponent(content))),
-          branch: "main"
-        };
-        if(sha) payload.sha = sha;
-        const result = await fetch(url, {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${githubToken}`, "Content-Type":"application/json" },
-          body: JSON.stringify(payload)
         });
-        if(!result.ok){
-          const err = await result.json();
-          status.textContent = "Erro: "+(err.message || result.statusText);
-        } else {
-          status.textContent = `Publicado: ${filename}`;
-          document.getElementById("filename").value = "";
-          document.getElementById("content").value = "";
-          loadList();
+        if(count === 0){
+          empty.style.display = "block";
         }
-      }catch(e){
-        status.textContent = "Erro ao publicar!";
-      }
-    }
-    document.getElementById("publishBtn").onclick = publishFile;
-
-    // LISTA arquivos da pasta ignorando index.html
-    async function loadList(){
-      const links = document.getElementById("links");
-      const empty = document.getElementById("empty");
-      links.innerHTML = "";
-      if(!githubToken) githubToken = await fetchToken();
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dir}`, { headers:{ Authorization: `Bearer ${githubToken}` }});
-      const files = await res.json();
-      let count = 0;
-      files.forEach(file => {
-        if(file.name.endsWith(".html") && file.name !== "index.html") {
-          const a = document.createElement("a");
-          a.href = `${dir}/${file.name}`;
-          a.className = "html-link";
-          a.textContent = file.name;
-          a.target = "_blank";
-          links.appendChild(a);
-          count++;
-        }
+      })
+      .catch(() => {
+        document.getElementById("empty").style.display = "block";
+        document.getElementById("empty").innerText = "Erro ao carregar arquivos do GitHub.";
       });
-      if(count === 0){
-        empty.style.display = "block";
-      }else{
-        empty.style.display = "none";
-      }
-    }
-    window.onload = loadList;
   </script>
 </body>
 </html>
