@@ -10,18 +10,20 @@
     .list { background: #333; border-radius: 8px; padding: 1rem; }
     a { color: #7ec6ff; text-decoration: none; margin: 0.5rem 0; display: block; }
     a:hover { text-decoration: underline; }
+    .atencao { color: #ffb400; margin-bottom: 1rem; }
   </style>
 </head>
 <body>
   <h1>Páginas disponíveis na pasta HTML</h1>
+  <div class="atencao">Abra as páginas em nova aba para testar ou editar!</div>
   <div id="links" class="list"></div>
 
   <script>
-    // Troque pelo seu usuário/repo
-    const owner = "tehewdev";
-    const repo = "TESTE-HTML";
-    const dir = "HTML";
-    
+    // Troque pelos dados do seu projeto
+    const owner = "tehewdev";         // Seu usuário GitHub
+    const repo = "TESTE-HTML";        // Seu repositório
+    const dir = "HTML";               // Pasta que deseja listar
+
     fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dir}`)
       .then(res => res.json())
       .then(files => {
@@ -35,6 +37,12 @@
             links.appendChild(a);
           }
         });
+        if(!links.hasChildNodes()){
+          links.innerHTML = "<em>Nenhuma página .html encontrada na pasta HTML.</em>";
+        }
+      })
+      .catch(() => {
+        document.getElementById("links").innerHTML = "<span style='color:#f44'>Erro ao carregar arquivos do GitHub.</span>";
       });
   </script>
 </body>
