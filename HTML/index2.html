@@ -111,10 +111,10 @@
     <div id="empty" class="no-files" style="display:none">Nenhuma página .html encontrada.</div>
   </div>
   <script>
-    // Troque pelos dados do seu projeto
-    const owner = "tehewdev";         // Seu usuário GitHub
-    const repo = "TESTE-HTML";        // Seu repositório
-    const dir = "HTML";               // Pasta que deseja listar
+    // Apenas configure essas variáveis:
+    const owner = "SEU_USUARIO";         // Ex: "seu-usuario"
+    const repo = "SEU_REPOSITORIO";      // Ex: "teste-html"
+    const dir = "HTML";                  // "HTML" se for sua pasta
 
     fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dir}`)
       .then(res => res.json())
