@@ -1,5 +1,8 @@
-# _redirects
-/HTML/* /html/index.html 200
-/HTML/* /TESTE-HTML/index.html 200
-/*/ /*/index.html 200
-/* /index.html 404
+# Sempre servir o arquivo estático HTML se existir
+/*    /$1    200
+
+# Para acessar subpastas como "/HTML/", servir o index.html da subpasta
+/HTML/*    /HTML/index.html    200
+
+# Toda URI inválida cai no index principal (opcional)
+/*    /index.html    404
