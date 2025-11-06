@@ -1,0 +1,5 @@
+# _redirects
+/HTML/* /html/index.html 200
+/HTML/* /TESTE-HTML/index.html 200
+/*/ /*/index.html 200
+/* /index.html 404
