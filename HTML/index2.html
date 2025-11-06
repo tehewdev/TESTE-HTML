@@ -1,72 +1,377 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <title>Páginas HTML Publicadas</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNjY3ZWVhIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM3NjRiYTIiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxNCIgZmlsbD0idXJsKCNhKSIgLz4KICA8cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNMjEgMThoOGw1IDkgNS05aDhsLTkgMTZ2MTJoLThWMzR6IiAvPgo8L3N2Zz4=">
-  <style>
-    /* igual ao modelo anterior */
-    :root {
-      --bg-main: #18181b; --bg-container: #232134;
-      --accent: #6366f1; --accent-light: #a1a1aa;
-      --text-main: #f8f8f2;
-      --link-bg: #25264b; --link-bg-active: #4547b0;
-    }
-    body { background: var(--bg-main); color: var(--text-main); margin: 0; font-family: 'Inter','Segoe UI',Arial,sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .container { background: var(--bg-container); border-radius: 22px; box-shadow: 0 20px 40px rgba(15,23,42,0.18); padding: 3rem 2rem; max-width: 520px; width: 99%; margin: 24px auto; border: 1.5px solid #313146; text-align: center;}
-    .hero-title { font-size: 2.1rem; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent-light)); background-clip: text; color: transparent; -webkit-background-clip: text; margin-bottom: 0.5rem;}
-    .hero-desc { color: #a1a1aa; font-size: 16px; margin-bottom: 1.5rem; line-height: 1.56;}
-    .list-title { font-size: 1.27rem; margin: 1.1rem 0 0.5rem 0; color: var(--accent); font-weight: 600; letter-spacing: -0.01em;}
-    .html-list { display: flex; flex-direction: column; align-items: stretch; gap: 11px; margin-bottom: 8px; margin-top: 6px;}
-    .html-link { background: var(--link-bg); color: var(--accent); text-decoration: none; border-radius: 12px; padding: 15px 14px; font-size: 1.06rem; font-weight: 500; box-shadow: 0 2px 16px rgba(99,102,241,0.12); border: 1px solid #373752; transition: background 0.22s, color 0.22s; display: flex; align-items: center; gap: 11px; justify-content: space-between;}
-    .html-link:hover, .html-link:focus { background: var(--link-bg-active); color: #fff;}
-    .no-files { color: #b83939; padding: 10px 5px; margin-top: 6px; font-size: 15px;}
-    @media (max-width:680px){ .container { padding: 2.2rem 1.1rem;} .list-title{font-size:1.1rem;} .html-link{font-size:1rem;} }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="hero-title">Páginas HTML Publicadas</div>
-    <div class="hero-desc">
-      Navegue e teste as páginas HTML disponíveis no repositório.<br>
-      Clique para abrir uma página da pasta <strong>HTML</strong>.
-    </div>
-    <div class="list-title">Arquivos da pasta <strong>HTML/</strong>:</div>
-    <div id="links" class="html-list"></div>
-    <div id="empty" class="no-files" style="display:none">Nenhuma página .html encontrada.</div>
-  </div>
-  <script>
-    // CONFIG do seu projeto real:
-    const owner = "tehewdev";
-    const repo = "teste-html";
-    const dir = "HTML";
 
-    fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dir}`)
-      .then(res => res.json())
-      .then(files => {
-        const links = document.getElementById("links");
-        const empty = document.getElementById("empty");
-        let count = 0;
-        files.forEach(file => {
-          if(file.name.endsWith(".html")) {
-            const a = document.createElement("a");
-            a.href = `${dir}/${file.name}`;
-            a.className = "html-link";
-            a.textContent = file.name;
-            a.target = "_blank";
-            links.appendChild(a);
-            count++;
-          }
-        });
-        if(count === 0){
-          empty.style.display = "block";
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tehew</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para ícones de redes sociais -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Favicon dinâmico animado -->
+    <link rel="icon" type="image/png" href="https://i.ibb.co/KpNfFnJz/frame-01.png" id="dynamic-favicon">
+    <script>
+        // Sempre redireciona pro domínio principal se acessar pelo .onrender.com
+        if (location.hostname.endsWith('.onrender.com')) {
+            location.href = 'https://tehew.space' + location.pathname + location.search + location.hash;
         }
-      })
-      .catch(() => {
-        document.getElementById("empty").style.display = "block";
-        document.getElementById("empty").innerText = "Erro ao carregar arquivos do GitHub.";
-      });
-  </script>
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            user-select: none;
+        }
+
+        .icon-hover {
+            transition: color 0.3s ease;
+        }
+
+        .icon-hover:hover {
+            color: #ffffff;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fade-in-from-random {
+            0% {
+                transform: translate(var(--initial-x), var(--initial-y)) rotate(var(--initial-rotate));
+                opacity: 0;
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fade-out {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .char {
+            display: inline-block;
+            transition: transform 1s ease-out, opacity 1s ease-out;
+            animation: float 4s ease-in-out infinite;
+            cursor: pointer;
+        }
+
+        .note-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .dynamic-site-link {
+            border-radius: 0.375rem;
+            border: 1px solid #27272a;
+            background: transparent;
+            color: #a3a3a3;
+            padding: 0.25rem 0.75rem;
+            font-size: 1rem;
+            margin-left: 0.25rem;
+            margin-right: 0.25rem;
+            margin-bottom: 2px;
+            font-family: "Fira Mono", "Menlo", monospace;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            display: inline-block;
+            text-decoration: none;
+            line-height: 2;
+        }
+
+        .dynamic-site-link:hover {
+            background: #18181b;
+            border-color: #fff;
+            color: #fff;
+        }
+
+        @media (max-width: 500px) {
+            .dynamic-site-link {
+                font-size: 0.8rem;
+                padding: 2px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- Conteúdo Principal -->
+    <div class="flex flex-col items-center justify-center text-center">
+        <h1 id="name-container" class="text-9xl md:text-[200px] font-bold tracking-widest leading-none"
+            style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);"></h1>
+    </div>
+
+    <!-- Rodapé / Links -->
+    <footer class="absolute bottom-4 left-0 w-full text-center">
+        <p class="text-xs text-neutral-500 mb-2">feito por tehew</p>
+        <div class="flex items-center justify-center gap-3 flex-wrap">
+            <!-- Ícones Sociais -->
+            <a href="https://www.instagram.com/tehew.dev/" target="_blank" rel="noopener noreferrer"
+                class="text-neutral-500 icon-hover">
+                <i class="fab fa-instagram fa-2x"></i>
+            </a>
+            <a href="https://github.com/tehewdev" target="_blank" rel="noopener noreferrer"
+                class="text-neutral-500 icon-hover">
+                <i class="fab fa-github fa-2x"></i>
+            </a>
+            <!-- Links dinâmicos adicionados via JavaScript -->
+            <span id="dynamic-sites" class="flex gap-1 flex-wrap"></span>
+        </div>
+    </footer>
+
+    <!-- Caixa de nota -->
+    <div id="note-box"
+        class="note-container hidden w-full max-w-sm p-6 rounded-xl bg-neutral-900 border border-neutral-700">
+        <textarea id="note-textarea" placeholder="escreva uma nota aqui..."
+            class="w-full h-40 bg-transparent text-white placeholder-neutral-500 outline-none resize-none text-base"></textarea>
+    </div>
+
+    <!-- Favicon animado -->
+    <script>
+        // Lista de frames (ajuste se algum link mudar)
+        const frames = [
+            'https://i.ibb.co/KpNfFnJz/frame-01.png',
+            'https://i.ibb.co/Y73Hwnxz/frame-02.png',
+            'https://i.ibb.co/JRW0RR6S/frame-03.png',
+            'https://i.ibb.co/DHdTTDdH/frame-04.png',
+            'https://i.ibb.co/x8DX8np5/frame-05.png',
+            'https://i.ibb.co/rGH4k93w/frame-06.png',
+            'https://i.ibb.co/CsNLvC6j/frame-07.png',
+            'https://i.ibb.co/zyH76J4/frame-08.png',
+            'https://i.ibb.co/KpNfFnJz/frame-09.png',
+            'https://i.ibb.co/Y73Hwnxz/frame-10.png',
+            'https://i.ibb.co/JRW0RR6S/frame-11.png',
+            'https://i.ibb.co/DHdTTDdH/frame-12.png',
+            'https://i.ibb.co/x8DX8np5/frame-13.png',
+            'https://i.ibb.co/rGH4k93w/frame-14.png',
+            'https://i.ibb.co/CsNLvC6j/frame-15.png',
+            'https://i.ibb.co/zyH76J4/frame-16.png',
+            'https://i.ibb.co/vNyfqLG/frame-17.png',
+            'https://i.ibb.co/67qD44qw/frame-18.png',
+            'https://i.ibb.co/nqxjtVcc/frame-19.png',
+            'https://i.ibb.co/N2PR5FHQ/frame-20.png',
+            'https://i.ibb.co/84nGXn6D/frame-21.png',
+            'https://i.ibb.co/0yRwgSrr/frame-22.png',
+            'https://i.ibb.co/mrn7DwML/frame-23.png',
+            'https://i.ibb.co/ccsTSmdv/frame-24.png',
+            'https://i.ibb.co/C3Mz11q3/frame-25.png',
+            'https://i.ibb.co/cSTkHFjy/frame-26.png',
+            'https://i.ibb.co/YT1Bqm4J/frame-27.png',
+            'https://i.ibb.co/q3k7HJHX/frame-28.png',
+            'https://i.ibb.co/LhQzV01t/frame-29.png',
+            'https://i.ibb.co/9kpXvxN9/frame-30.png',
+            'https://i.ibb.co/1Gzkc94f/frame-31.png',
+            'https://i.ibb.co/1tdktJQT/frame-32.png',
+            'https://i.ibb.co/sd3zkC3D/frame-33.png',
+            'https://i.ibb.co/1tdktJQT/frame-34.png',
+            'https://i.ibb.co/sd3zkC3D/frame-35.png'
+        ];
+        let frameIndex = 0;
+        setInterval(() => {
+            let link = document.querySelector("link[rel*='icon']") || document.getElementById('dynamic-favicon');
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                link.id = 'dynamic-favicon';
+                document.head.appendChild(link);
+            }
+            link.type = 'image/png';
+            link.href = frames[frameIndex];
+            frameIndex = (frameIndex + 1) % frames.length;
+        }, 100);
+    </script>
+
+    <!-- JS Letras e links automáticos -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // LETRAS E ANIMAÇÃO - igual seu código
+            const nameContainer = document.getElementById('name-container');
+            const noteBox = document.getElementById('note-box');
+            const noteTextarea = document.getElementById('note-textarea');
+            const nameText = 'tehew';
+            function createLetters() {
+                nameContainer.innerHTML = '';
+                noteBox.classList.add('hidden');
+                noteTextarea.value = '';
+                nameText.split('').forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    span.className = 'char';
+                    const initialX = (Math.random() * 800 - 400);
+                    const initialY = (Math.random() * 800 - 400);
+                    const initialRotate = (Math.random() * 720 - 360);
+                    span.style.setProperty('--initial-x', `${initialX}px`);
+                    span.style.setProperty('--initial-y', `${initialY}px`);
+                    span.style.setProperty('--initial-rotate', `${initialRotate}deg`);
+                    span.style.animation = `fade-in-from-random 1.5s ease-out ${index * 0.1}s forwards, float 4s ease-in-out infinite ${index * 0.1 + 1.5}s`;
+                    span.addEventListener('click', (event) => {
+                        shatterText(event.target);
+                    });
+                    nameContainer.appendChild(span);
+                });
+            }
+            function shatterText(charElement) {
+                charElement.style.animation = 'none';
+                const x = Math.random() * 200 - 100;
+                const y = Math.random() * 200 - 100;
+                const rotate = Math.random() * 360 - 180;
+                charElement.style.transform = `translate(${x}px, ${y}px) rotate(${rotate}deg)`;
+                charElement.style.opacity = '0';
+                setTimeout(() => {
+                    charElement.remove();
+                    if (nameContainer.children.length === 0) {
+                        noteBox.classList.remove('hidden');
+                        setTimeout(() => {
+                            noteBox.style.opacity = '1';
+                        }, 10);
+                        noteTextarea.focus();
+                    }
+                }, 1000);
+            }
+            noteTextarea.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const message = noteTextarea.value.trim();
+                    if (message) {
+                        // Salva a mensagem online e localmente
+                        saveMessage(message);
+                    }
+                    // Volta ao comportamento original - caixa desaparece
+                    noteBox.style.animation = 'fade-out 0.5s ease-out forwards';
+                    nameContainer.style.opacity = '0';
+                }
+            });
+
+            // Configuração JSONBin.io
+            const JSONBIN_API_KEY = '$2a$10$sLapKiELl6njmNCvL/1G1.aksjUJ6nyXMnWpjwtR7csdw0ERQBkmO';
+            const JSONBIN_BIN_ID = '68cb79e543b1c97be946b710'; // Bin criado manualmente
+
+            // Função para salvar mensagens (usando bin existente)
+            async function saveMessage(message) {
+                const newMessage = {
+                    text: message,
+                    timestamp: new Date().toISOString(),
+                    id: Date.now(),
+                    userAgent: navigator.userAgent.substring(0, 50)
+                };
+
+                // Salva localmente como backup
+                const localMessages = JSON.parse(localStorage.getItem('tehewMessages') || '[]');
+                localMessages.push(newMessage);
+                localStorage.setItem('tehewMessages', JSON.stringify(localMessages));
+
+                // Salva online no JSONBin.io
+                try {
+                    console.log('📋 Buscando mensagens existentes...');
+
+                    // 1. Busca mensagens existentes
+                    let existingMessages = [];
+                    const getResponse = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                        headers: {
+                            'X-Access-Key': JSONBIN_API_KEY
+                        }
+                    });
+
+                    if (getResponse.ok) {
+                        const data = await getResponse.json();
+                        existingMessages = data.record.messages || [];
+                        console.log('✅ Encontradas', existingMessages.length, 'mensagens');
+                    } else {
+                        console.log('⚠️ Bin vazio ou erro, criando nova lista');
+                        existingMessages = [];
+                    }
+
+                    // 2. Adiciona nova mensagem
+                    existingMessages.push(newMessage);
+
+                    // 3. Atualiza o bin
+                    const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Access-Key': JSONBIN_API_KEY
+                        },
+                        body: JSON.stringify({
+                            messages: existingMessages,
+                            lastUpdated: new Date().toISOString()
+                        })
+                    });
+
+                    if (updateResponse.ok) {
+                        console.log('✅ Mensagem salva online! Total:', existingMessages.length);
+                    } else {
+                        throw new Error(`Erro ao atualizar bin: ${updateResponse.status}`);
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erro ao salvar online:', error);
+                    console.log('📱 Mensagem salva apenas localmente como backup');
+                }
+            }
+
+            noteBox.addEventListener('animationend', (event) => {
+                if (event.animationName === 'fade-out') {
+                    noteBox.style.animation = '';
+                    setTimeout(() => {
+                        createLetters();
+                        nameContainer.style.opacity = '1';
+                    }, 50);
+                }
+            });
+            createLetters();
+
+            // === LINKS DINÂMICOS (subpastas com index.html) ===
+            const owner = "tehewdev";
+            const repo = "tehew.space";
+            fetch(`https://api.github.com/repos/${owner}/${repo}/contents`)
+                .then(res => res.json())
+                .then(contents => {
+                    const folders = contents.filter(item => item.type === "dir");
+                    const linksContainer = document.getElementById("dynamic-sites");
+                    folders.forEach(folder => {
+                        fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder.name}`)
+                            .then(r => r.json())
+                            .then(files => {
+                                const hasIndex = files.some(f => f.name.toLowerCase() === 'index.html');
+                                if (hasIndex) {
+                                    const a = document.createElement("a");
+                                    a.href = `/${folder.name}/`;
+                                    a.className = "dynamic-site-link";
+                                    a.textContent = `/${folder.name}`;
+                                    a.target = "_blank";
+                                    a.rel = "noopener noreferrer";
+                                    linksContainer.appendChild(a);
+                                }
+                            });
+                    });
+                });
+        });
+    </script>
 </body>
+
 </html>
