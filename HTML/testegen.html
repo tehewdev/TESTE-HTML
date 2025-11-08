@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Knight AI - Chess Powered AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
@@ -24,6 +25,75 @@
             transform: translateY(-4px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 3px solid #fbbf24;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.3);
+        }
+
+        .square {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .square.light { background-color: #f0d9b5; }
+        .square.dark { background-color: #b58863; }
+        .square.selected { background-color: #7fa650 !important; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
+        .square.valid-move { background-color: #9BC53D !important; }
+        .square.last-move { background-color: #cdd26a !important; }
+        .square:hover { opacity: 0.8; transform: scale(0.95); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active { display: flex; }
+
+        .piece-symbol {
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: #1c1c2e;
+            border: 1px solid #fbbf24;
+            border-radius: 0.5rem;
+            color: white;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body class="min-h-screen chess-pattern">
@@ -38,20 +108,20 @@
                     <span class="text-2xl font-bold text-white">Knight AI</span>
                 </div>
                 <div class="flex items-center gap-6">
-                    <a href="#" class="text-gray-300 hover:text-white transition">Home</a>
-                    <a href="#" class="text-gray-300 hover:text-white transition">Batalhas</a>
-                    <a href="#" class="text-gray-300 hover:text-white transition">Histórico</a>
-                    <button class="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2 rounded-lg transition">
-                        Login
+                    <a href="#" onclick="showHome()" class="text-gray-300 hover:text-white transition">Home</a>
+                    <a href="#history" onclick="showHistory()" class="text-gray-300 hover:text-white transition">Histórico</a>
+                    <button onclick="toggleLogin()" class="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2 rounded-lg transition">
+                        <span id="loginText">Login</span>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <div class="max-w-7xl mx-auto px-4 py-12">
-        <div class="text-center mb-12">
+    <!-- Main Content -->
+    <div id="mainContent" class="max-w-7xl mx-auto px-4 py-12">
+        <!-- Hero Section -->
+        <div class="text-center mb-12 fade-in">
             <h1 class="text-5xl font-bold text-white mb-4">
                 Desafie a <span class="text-amber-400">Inteligência Artificial</span>
             </h1>
@@ -63,7 +133,7 @@
         <!-- Game Modes Grid -->
         <div class="grid md:grid-cols-3 gap-6 mb-12">
             <!-- Human vs Human -->
-            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 card-hover cursor-pointer">
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 card-hover cursor-pointer" onclick="startGame('pvp')">
                 <div class="bg-gradient-to-br from-blue-500 to-purple-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
                     <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
@@ -79,7 +149,7 @@
             </div>
 
             <!-- Human vs AI -->
-            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-6 card-hover cursor-pointer ring-2 ring-amber-500/20">
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-6 card-hover cursor-pointer ring-2 ring-amber-500/20" onclick="openAISelector()">
                 <div class="bg-gradient-to-br from-amber-500 to-orange-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
                     <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20 9V6h-2v3h-3v2h3v3h2v-3h3V9h-3zM9 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm6.39 8.56C13.71 13.7 11.53 13 9 13s-4.71.7-6.39 1.56C1.61 15.07 1 16.1 1 17.22V20h16v-2.78c0-1.12-.61-2.15-1.61-2.66zM15 18H3v-.78c0-.38.2-.72.52-.88C4.71 15.73 6.63 15 9 15c2.37 0 4.29.73 5.48 1.34.32.16.52.5.52.88V18z"/>
@@ -95,7 +165,7 @@
             </div>
 
             <!-- AI vs AI -->
-            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 card-hover cursor-pointer">
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 card-hover cursor-pointer" onclick="openAIBattle()">
                 <div class="bg-gradient-to-br from-emerald-500 to-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
                     <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20.5 6c-2.61.7-5.67 1-8.5 1s-5.89-.3-8.5-1L3 8c1.86.5 4 .83 6 1v13h2v-6h2v6h2V9c2-.17 4.14-.5 6-1l-.5-2zM12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
@@ -116,21 +186,149 @@
             <h2 class="text-2xl font-bold text-white mb-6">Suas Estatísticas</h2>
             <div class="grid grid-cols-4 gap-6">
                 <div class="text-center">
-                    <p class="text-4xl font-bold text-amber-400 mb-2">127</p>
+                    <p class="text-4xl font-bold text-amber-400 mb-2" id="totalGames">0</p>
                     <p class="text-gray-400 text-sm">Partidas Jogadas</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-4xl font-bold text-emerald-400 mb-2">68</p>
+                    <p class="text-4xl font-bold text-emerald-400 mb-2" id="wins">0</p>
                     <p class="text-gray-400 text-sm">Vitórias</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-4xl font-bold text-red-400 mb-2">45</p>
+                    <p class="text-4xl font-bold text-red-400 mb-2" id="losses">0</p>
                     <p class="text-gray-400 text-sm">Derrotas</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-4xl font-bold text-blue-400 mb-2">14</p>
+                    <p class="text-4xl font-bold text-blue-400 mb-2" id="draws">0</p>
                     <p class="text-gray-400 text-sm">Empates</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Container (Hidden Initially) -->
+    <div id="gameContainer" class="max-w-7xl mx-auto px-4 py-8 hidden">
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Left Panel: Game Info -->
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">Informações do Jogo</h3>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-gray-400 text-sm">Modo de Jogo</p>
+                        <p class="text-white font-semibold" id="gameMode">-</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Turno Atual</p>
+                        <p class="text-white font-semibold" id="currentTurn">Brancas</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Status</p>
+                        <p class="text-white font-semibold" id="gameStatus">Em Andamento</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Movimentos</p>
+                        <p class="text-white font-semibold" id="moveCount">0</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-2">
+                    <button onclick="resetGame()" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-2 rounded-lg transition">
+                        Novo Jogo
+                    </button>
+                    <button onclick="undoMove()" class="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium py-2 rounded-lg transition">
+                        Desfazer
+                    </button>
+                    <button onclick="showHome()" class="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium py-2 rounded-lg transition">
+                        Voltar ao Menu
+                    </button>
+                </div>
+            </div>
+
+            <!-- Center: Chessboard -->
+            <div class="lg:col-span-1">
+                <div id="chessboard" class="chessboard"></div>
+            </div>
+
+            <!-- Right Panel: Move History -->
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4">Histórico de Jogadas</h3>
+                <div id="moveHistory" class="space-y-2 max-h-96 overflow-y-auto">
+                    <p class="text-gray-400 text-sm">Nenhuma jogada ainda...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Selector Modal -->
+    <div id="aiSelectorModal" class="modal">
+        <div class="bg-[#1c1c2e] border border-white/20 rounded-2xl p-8 max-w-2xl w-full mx-4">
+            <h2 class="text-3xl font-bold text-white mb-6">Escolha seu Oponente IA</h2>
+            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                <div onclick="selectAI('GPT-4')" class="bg-white/5 hover:bg-white/10 border border-white/20 rounded-xl p-4 cursor-pointer transition">
+                    <h4 class="text-lg font-bold text-white mb-2">GPT-4 Turbo</h4>
+                    <p class="text-gray-400 text-sm mb-2">OpenAI - Nível Avançado</p>
+                    <div class="flex gap-1">
+                        <span class="text-amber-400">★★★★★</span>
+                    </div>
+                </div>
+                <div onclick="selectAI('Claude')" class="bg-white/5 hover:bg-white/10 border border-white/20 rounded-xl p-4 cursor-pointer transition">
+                    <h4 class="text-lg font-bold text-white mb-2">Claude Opus</h4>
+                    <p class="text-gray-400 text-sm mb-2">Anthropic - Nível Avançado</p>
+                    <div class="flex gap-1">
+                        <span class="text-amber-400">★★★★★</span>
+                    </div>
+                </div>
+                <div onclick="selectAI('Gemini')" class="bg-white/5 hover:bg-white/10 border border-white/20 rounded-xl p-4 cursor-pointer transition">
+                    <h4 class="text-lg font-bold text-white mb-2">Gemini Ultra</h4>
+                    <p class="text-gray-400 text-sm mb-2">Google - Nível Expert</p>
+                    <div class="flex gap-1">
+                        <span class="text-amber-400">★★★★★</span>
+                    </div>
+                </div>
+                <div onclick="selectAI('Stockfish')" class="bg-white/5 hover:bg-white/10 border border-white/20 rounded-xl p-4 cursor-pointer transition">
+                    <h4 class="text-lg font-bold text-white mb-2">Stockfish 16</h4>
+                    <p class="text-gray-400 text-sm mb-2">Engine Clássico - Mestre</p>
+                    <div class="flex gap-1">
+                        <span class="text-amber-400">★★★★★</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="closeModal('aiSelectorModal')" class="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium py-3 rounded-lg transition">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <!-- AI Battle Modal -->
+    <div id="aiBattleModal" class="modal">
+        <div class="bg-[#1c1c2e] border border-white/20 rounded-2xl p-8 max-w-2xl w-full mx-4">
+            <h2 class="text-3xl font-bold text-white mb-6">Batalha de IAs</h2>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="text-gray-400 text-sm mb-2 block">IA 1 (Brancas)</label>
+                    <select id="ai1Select" class="w-full bg-white/5 border border-white/20 text-white rounded-lg p-3">
+                        <option value="GPT-4">GPT-4 Turbo</option>
+                        <option value="Claude">Claude Opus</option>
+                        <option value="Gemini">Gemini Ultra</option>
+                        <option value="Stockfish">Stockfish 16</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm mb-2 block">IA 2 (Pretas)</label>
+                    <select id="ai2Select" class="w-full bg-white/5 border border-white/20 text-white rounded-lg p-3">
+                        <option value="Claude">Claude Opus</option>
+                        <option value="GPT-4">GPT-4 Turbo</option>
+                        <option value="Gemini">Gemini Ultra</option>
+                        <option value="Stockfish">Stockfish 16</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="startAIBattle()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 rounded-lg transition">
+                    Iniciar Batalha
+                </button>
+                <button onclick="closeModal('aiBattleModal')" class="flex-1 bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium py-3 rounded-lg transition">
+                    Cancelar
+                </button>
             </div>
         </div>
     </div>
@@ -148,5 +346,331 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        // Game State
+        let game = new Chess();
+        let selectedSquare = null;
+        let gameMode = null;
+        let currentAI = null;
+        let isLoggedIn = false;
+        let stats = {
+            totalGames: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0
+        };
+
+        // Chess piece Unicode symbols
+        const pieceSymbols = {
+            'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
+            'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
+        };
+
+        // Load stats from localStorage
+        function loadStats() {
+            const saved = localStorage.getItem('knightAIStats');
+            if (saved) {
+                stats = JSON.parse(saved);
+                updateStatsDisplay();
+            }
+        }
+
+        function saveStats() {
+            localStorage.setItem('knightAIStats', JSON.stringify(stats));
+            updateStatsDisplay();
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('totalGames').textContent = stats.totalGames;
+            document.getElementById('wins').textContent = stats.wins;
+            document.getElementById('losses').textContent = stats.losses;
+            document.getElementById('draws').textContent = stats.draws;
+        }
+
+        // Initialize board
+        function initBoard() {
+            const board = document.getElementById('chessboard');
+            board.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    const isLight = (row + col) % 2 === 0;
+                    square.className = `square ${isLight ? 'light' : 'dark'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    square.dataset.square = String.fromCharCode(97 + col) + (8 - row);
+                    square.onclick = () => handleSquareClick(square.dataset.square);
+                    board.appendChild(square);
+                }
+            }
+            updateBoard();
+        }
+
+        // Update board with current position
+        function updateBoard() {
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                const squareName = square.dataset.square;
+                const piece = game.get(squareName);
+                square.innerHTML = piece ? `<span class="piece-symbol">${pieceSymbols[piece.type.toUpperCase() === piece.type ? piece.type.toUpperCase() : piece.type]}</span>` : '';
+                square.classList.remove('selected', 'valid-move', 'last-move');
+            });
+
+            // Update game info
+            document.getElementById('currentTurn').textContent = game.turn() === 'w' ? 'Brancas' : 'Pretas';
+            document.getElementById('moveCount').textContent = game.history().length;
+
+            // Check game over
+            if (game.game_over()) {
+                let status = '';
+                if (game.in_checkmate()) {
+                    status = `Xeque-mate! ${game.turn() === 'w' ? 'Pretas' : 'Brancas'} vencem!`;
+                    if (gameMode === 'ai' && game.turn() === 'w') {
+                        stats.losses++;
+                    } else if (gameMode === 'ai' && game.turn() === 'b') {
+                        stats.wins++;
+                    }
+                    stats.totalGames++;
+                    saveStats();
+                } else if (game.in_draw()) {
+                    status = 'Empate!';
+                    stats.draws++;
+                    stats.totalGames++;
+                    saveStats();
+                } else if (game.in_stalemate()) {
+                    status = 'Empate por afogamento!';
+                    stats.draws++;
+                    stats.totalGames++;
+                    saveStats();
+                } else if (game.in_threefold_repetition()) {
+                    status = 'Empate por repetição!';
+                    stats.draws++;
+                    stats.totalGames++;
+                    saveStats();
+                }
+                document.getElementById('gameStatus').textContent = status;
+                showNotification(status);
+            } else if (game.in_check()) {
+                document.getElementById('gameStatus').textContent = 'Xeque!';
+            } else {
+                document.getElementById('gameStatus').textContent = 'Em Andamento';
+            }
+        }
+
+        // Handle square click
+        function handleSquareClick(square) {
+            if (game.game_over()) return;
+
+            // If AI mode and it's black's turn, don't allow moves
+            if (gameMode === 'ai' && game.turn() === 'b') return;
+
+            if (selectedSquare === null) {
+                // Select piece
+                const piece = game.get(square);
+                if (piece && piece.color === game.turn()) {
+                    selectedSquare = square;
+                    document.querySelector(`[data-square="${square}"]`).classList.add('selected');
+                    
+                    // Show valid moves
+                    const moves = game.moves({ square: square, verbose: true });
+                    moves.forEach(move => {
+                        document.querySelector(`[data-square="${move.to}"]`).classList.add('valid-move');
+                    });
+                }
+            } else {
+                // Try to move
+                const move = game.move({
+                    from: selectedSquare,
+                    to: square,
+                    promotion: 'q' // Always promote to queen for simplicity
+                });
+
+                if (move) {
+                    updateBoard();
+                    addMoveToHistory(move);
+                    
+                    // If AI mode, make AI move after a delay
+                    if (gameMode === 'ai' && !game.game_over()) {
+                        setTimeout(makeAIMove, 500);
+                    } else if (gameMode === 'aivsai' && !game.game_over()) {
+                        setTimeout(makeAIMove, 1000);
+                    }
+                }
+                
+                selectedSquare = null;
+                updateBoard();
+            }
+        }
+
+        // AI makes a move (random for demo)
+        function makeAIMove() {
+            const moves = game.moves();
+            if (moves.length === 0) return;
+            
+            const randomMove = moves[Math.floor(Math.random() * moves.length)];
+            const move = game.move(randomMove);
+            updateBoard();
+            addMoveToHistory(move);
+
+            showNotification(`${currentAI} jogou: ${move.san}`);
+
+            // If AI vs AI, continue
+            if (gameMode === 'aivsai' && !game.game_over()) {
+                setTimeout(makeAIMove, 1000);
+            }
+        }
+
+        // Add move to history
+        function addMoveToHistory(move) {
+            const historyDiv = document.getElementById('moveHistory');
+            if (historyDiv.children[0]?.textContent === 'Nenhuma jogada ainda...') {
+                historyDiv.innerHTML = '';
+            }
+
+            const moveNumber = Math.ceil(game.history().length / 2);
+            const color = move.color === 'w' ? 'Brancas' : 'Pretas';
+            
+            const moveEl = document.createElement('div');
+            moveEl.className = 'text-white text-sm p-2 bg-white/5 rounded';
+            moveEl.textContent = `${moveNumber}. ${color}: ${move.san}`;
+            historyDiv.appendChild(moveEl);
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+
+        // Start game
+        function startGame(mode) {
+            gameMode = mode;
+            game = new Chess();
+            selectedSquare = null;
+            
+            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+            
+            const modeNames = {
+                'pvp': 'Humano vs Humano',
+                'ai': `Humano vs ${currentAI || 'IA'}`,
+                'aivsai': 'IA vs IA'
+            };
+            
+            document.getElementById('gameMode').textContent = modeNames[mode];
+            document.getElementById('moveHistory').innerHTML = '<p class="text-gray-400 text-sm">Nenhuma jogada ainda...</p>';
+            
+            initBoard();
+
+            // If AI vs AI, start immediately
+            if (mode === 'aivsai') {
+                setTimeout(makeAIMove, 1000);
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            if (confirm('Deseja realmente reiniciar o jogo?')) {
+                startGame(gameMode);
+            }
+        }
+
+        // Undo move
+        function undoMove() {
+            if (game.history().length > 0) {
+                game.undo();
+                if (gameMode === 'ai' && game.history().length > 0) {
+                    game.undo(); // Undo AI move too
+                }
+                updateBoard();
+                
+                // Rebuild move history
+                const moves = game.history({ verbose: true });
+                const historyDiv = document.getElementById('moveHistory');
+                historyDiv.innerHTML = moves.length === 0 
+                    ? '<p class="text-gray-400 text-sm">Nenhuma jogada ainda...</p>'
+                    : '';
+                moves.forEach(addMoveToHistory);
+            }
+        }
+
+        // Show home
+        function showHome() {
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('gameContainer').classList.add('hidden');
+        }
+
+        // Show history
+        function showHistory() {
+            alert('Histórico de jogos em desenvolvimento!');
+        }
+
+        // Toggle login
+        function toggleLogin() {
+            isLoggedIn = !isLoggedIn;
+            document.getElementById('loginText').textContent = isLoggedIn ? 'Logout' : 'Login';
+            if (isLoggedIn) {
+                showNotification('Login realizado com sucesso!');
+            } else {
+                showNotification('Logout realizado com sucesso!');
+            }
+        }
+
+        // Open AI selector
+        function openAISelector() {
+            document.getElementById('aiSelectorModal').classList.add('active');
+        }
+
+        // Select AI
+        function selectAI(aiName) {
+            currentAI = aiName;
+            closeModal('aiSelectorModal');
+            showNotification(`${aiName} selecionado como oponente!`);
+            startGame('ai');
+        }
+
+        // Open AI battle
+        function openAIBattle() {
+            document.getElementById('aiBattleModal').classList.add('active');
+        }
+
+        // Start AI battle
+        function startAIBattle() {
+            const ai1 = document.getElementById('ai1Select').value;
+            const ai2 = document.getElementById('ai2Select').value;
+            currentAI = `${ai1} vs ${ai2}`;
+            closeModal('aiBattleModal');
+            showNotification(`Batalha iniciada: ${ai1} vs ${ai2}!`);
+            startGame('aivsai');
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            loadStats();
+        };
+
+        // Close modals on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
