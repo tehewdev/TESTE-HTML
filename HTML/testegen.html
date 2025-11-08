@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight AI - Chess Powered AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .chess-pattern {
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,.03) 10px, rgba(255,255,255,.03) 20px);
+        }
+        
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen chess-pattern">
+    <!-- Navigation -->
+    <nav class="bg-[#1c1c2e]/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 22H5v-2h14v2zm-6-16.5h-2v4h4V11H11c-1.1 0-2 .9-2 2v3h6v-3c0-1.1-.9-2-2-2h-2v-4.5z"/>
+                    </svg>
+                    <span class="text-2xl font-bold text-white">Knight AI</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a href="#" class="text-gray-300 hover:text-white transition">Home</a>
+                    <a href="#" class="text-gray-300 hover:text-white transition">Batalhas</a>
+                    <a href="#" class="text-gray-300 hover:text-white transition">Histórico</a>
+                    <button class="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-2 rounded-lg transition">
+                        Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">
+                Desafie a <span class="text-amber-400">Inteligência Artificial</span>
+            </h1>
+            <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                Escolha seu modo de jogo e teste suas habilidades contra os melhores modelos de IA
+            </p>
+        </div>
+
+        <!-- Game Modes Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+            <!-- Human vs Human -->
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 card-hover cursor-pointer">
+                <div class="bg-gradient-to-br from-blue-500 to-purple-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Humano vs Humano</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    Jogue contra outro jogador em uma partida clássica de xadrez
+                </p>
+                <button class="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium py-3 rounded-lg transition">
+                    Iniciar Partida
+                </button>
+            </div>
+
+            <!-- Human vs AI -->
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-6 card-hover cursor-pointer ring-2 ring-amber-500/20">
+                <div class="bg-gradient-to-br from-amber-500 to-orange-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20 9V6h-2v3h-3v2h3v3h2v-3h3V9h-3zM9 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm6.39 8.56C13.71 13.7 11.53 13 9 13s-4.71.7-6.39 1.56C1.61 15.07 1 16.1 1 17.22V20h16v-2.78c0-1.12-.61-2.15-1.61-2.66zM15 18H3v-.78c0-.38.2-.72.52-.88C4.71 15.73 6.63 15 9 15c2.37 0 4.29.73 5.48 1.34.32.16.52.5.52.88V18z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Humano vs IA</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    Desafie modelos avançados como GPT-4, Claude ou Gemini
+                </p>
+                <button class="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 rounded-lg transition">
+                    Escolher IA
+                </button>
+            </div>
+
+            <!-- AI vs AI -->
+            <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 card-hover cursor-pointer">
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.5 6c-2.61.7-5.67 1-8.5 1s-5.89-.3-8.5-1L3 8c1.86.5 4 .83 6 1v13h2v-6h2v6h2V9c2-.17 4.14-.5 6-1l-.5-2zM12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">IA vs IA</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    Assista duas inteligências artificiais competindo entre si
+                </p>
+                <button class="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-medium py-3 rounded-lg transition">
+                    Assistir Batalha
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="bg-[#1c1c2e]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Suas Estatísticas</h2>
+            <div class="grid grid-cols-4 gap-6">
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-amber-400 mb-2">127</p>
+                    <p class="text-gray-400 text-sm">Partidas Jogadas</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-emerald-400 mb-2">68</p>
+                    <p class="text-gray-400 text-sm">Vitórias</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-red-400 mb-2">45</p>
+                    <p class="text-gray-400 text-sm">Derrotas</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-blue-400 mb-2">14</p>
+                    <p class="text-gray-400 text-sm">Empates</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#1c1c2e]/80 border-t border-white/10 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="flex justify-between items-center">
+                <p class="text-gray-400 text-sm">© 2025 Knight AI. Todos os direitos reservados.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition">Termos</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">Privacidade</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition">Contato</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
