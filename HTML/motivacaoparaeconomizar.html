@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>App Educação Financeira Baixa Renda</title>
+    <meta name="description" content="Controle financeiro completo, tutoriais práticos, desafios de economia e dicas para baixar renda.">
+    <meta name="theme-color" content="#6366f1">
+    <style>
+        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; margin: 0; }
+        .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); min-height: 100vh; }
+        header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        nav { display: flex; justify-content: center; gap: 5px; background: #f0f1fa; border-radius: 0 0 10px 10px; }
+        nav button { padding: 14px 29px; border: none; border-radius: 8px 8px 0 0; background: #ecebfc; color: #444; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        nav button.active, nav button:hover { background: #6366f1; color: white; }
+        .tab-content { display: none; padding: 29px 15px; }
+        .tab-content.active { display: block; }
+        h2 { color: #6366f1; }
+        .card { background: #f8fafc; border-radius: 14px; margin: 16px 0; padding: 20px 16px; }
+        .destaque { background: #e0e7ff; font-weight: bold; }
+        .dicas-lista li { margin: 7px 0; }
+        .passos { background: #f1f6fc; font-weight: 600; margin: 8px 0; padding: 9px 15px; border-left: 3px solid #6366f1; }
+        .exercicio { background: #c7f7c2; border-left: 4px solid #14b314; border-radius: 7px; padding: 10px 16px; margin: 10px 0; }
+        .video { color: #334; border-left: 3px solid #7c3aed; background: #ede9fe; border-radius: 5px; padding: 8px 10px; margin: 4px 0 12px 0; font-size: 1em; }
+        .badge { display: inline-block; background: #fff7ed; color: #da6a00; padding: 4px 10px; border-radius: 7px; font-weight: bold; margin-top: 7px; margin-bottom: 7px; }
+    </style>
+    <script>
+        function activateTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+            document.querySelector(`nav button[data-tab="${tab}"]`).classList.add('active');
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Educação Financeira na Prática</h1>
+            <p><b>Transforme sua rotina financeira e conquiste mais qualidade de vida com controle, dicas e desafios.</b></p>
+        </header>
+        <nav>
+            <button onclick="activateTab('tutorial')" data-tab="tutorial" class="active">Tutorial</button>
+            <button onclick="activateTab('dicas')" data-tab="dicas">Dicas</button>
+            <button onclick="activateTab('desafios')" data-tab="desafios">Desafios</button>
+            <button onclick="activateTab('videos')" data-tab="videos">Vídeos</button>
+        </nav>
+        <!-- Tutorial principal -->
+        <div id="tutorial" class="tab-content active">
+            <h2>Início Rápido - Controle de Finanças</h2>
+            <div class="card destaque">Bem-vindo! Aqui você aprende a organizar renda, cortar gastos supérfluos e economizar de verdade.</div>
+            <p class="passos">1. Anote TUDO que gasta e recebe (até mesmo R$ 2 do pão!).</p>
+            <p class="passos">2. Use a regra <b>50/30/20</b>:<br> 50% necessidades, 30% lazer e 20% para poupar ou quitar dívidas.</p>
+            <p class="passos">3. Defina metas simples: Comece economizando 10% do que ganha, depois aumente.</p>
+            <p class="passos">4. Monte um fundo de emergência para imprevistos (pode ser aos poucos!).</p>
+            <div class="card">
+                <h3>Guia Rápido 7 Dias</h3>
+                <div class="dicas-lista">
+                    <li><b>Dia 1:</b> Anote absolutamente tudo que gastar hoje.</li>
+                    <li><b>Dia 2:</b> Revise os gastos e descubra para onde vai seu dinheiro.</li>
+                    <li><b>Dia 3:</b> Cadastre sua renda mensal.</li>
+                    <li><b>Dia 4:</b> Separe cada gasto por categoria (alimentação, transporte, contas...)</li>
+                    <li><b>Dia 5:</b> Procure três gastos que pode reduzir ou cortar.</li>
+                    <li><b>Dia 6:</b> Ponha uma meta pequena de economia (ex: R$ 50 no mês).</li>
+                    <li><b>Dia 7:</b> Decida onde guardar o dinheiro economizado (cofrinho, conta, etc).</li>
+                </div>
+            </div>
+            <div class="badge">Dica: Repita o ciclo! Quanto mais fizer, mais dinheiro sobra no mês.</div>
+        </div>
+        <!-- Dicas práticas -->
+        <div id="dicas" class="tab-content">
+            <h2>Dicas de Economia Real no Dia a Dia</h2>
+            <div class="card">
+                <b>Alimentação:</b>
+                <ul class="dicas-lista">
+                    <li>Vá ao mercado só com lista (e de barriga cheia).</li>
+                    <li>Compre frutas/verduras da estação.</li>
+                    <li>Prefira embalagens refil e marcas econômicas.</li>
+                    <li>Cozinhe em casa e faça marmita, evite delivery.</li>
+                    <li>Aproveite promoções e compre a granel.</li>
+                    <li>Aproveite sobras e congele o que der.</li>
+                   </ul>
+                <b>Moradia e Contas:</b>
+                <ul class="dicas-lista">
+                    <li>Troque lâmpadas por LED.</li>
+                    <li>Banhos curtos (até 5 minutos!)</li>
+                    <li>Desligue aparelhos da tomada.</li>
+                    <li>Reutilize água e conserte vazamentos.</li>
+                    <li>Renegocie planos de internet e corte serviços pouco usados.</li>
+                </ul>
+                <b>Transporte:</b>
+                <ul class="dicas-lista">
+                    <li>Planeje rotas, aproveite caronas e utilize transporte público.</li>
+                    <li>Leve lanche e água de casa para evitar compras na rua.</li>
+                </ul>
+                <b>Outras:</b>
+                <ul class="dicas-lista">
+                    <li>Pesquise preços online, use cupons e cashback.</li>
+                    <li>Espere 48h para compras não urgentes.</li>
+                    <li>Cancele assinaturas sem uso.</li>
+                </ul>
+            </div>
+            <div class="card">Use sempre valores pequenos para começar e adapte para sua realidade!</div>
+        </div>
+        <!-- Desafios de Economia -->
+        <div id="desafios" class="tab-content">
+            <h2>Desafios Semanais para Ganhar Controle</h2>
+            <div class="exercicio">Semana 1: Só entrar no mercado com lista e não comprar nada fora dela.</div>
+            <div class="exercicio">Semana 2: 7 dias sem delivery. Prepare todas refeições em casa.</div>
+            <div class="exercicio">Semana 3: Tire todos aparelhos da tomada ao sair.</div>
+            <div class="exercicio">Semana 4: Faça banho rápido (máx. 5min) todos os dias.</div>
+            <div class="badge">Cada desafio superado: registre a economia e veja o saldo nas próximas semanas!</div>
+        </div>
+        <!-- Área de vídeos/resumo -->
+        <div id="videos" class="tab-content">
+            <h2>Vídeos Rápidos – Aprenda em 2 Minutos</h2>
+            <div class="video">Como fazer lista de compras econômica</div>
+            <div class="video">Passo a passo para renegociar contas</div>
+            <div class="video">Receitas rápidas e econômicas para a semana (R$ 50)</div>
+            <div class="video">Como descobrir e cortar vazamentos de dinheiro</div>
+            <div class="video">Limpeza barata: como fazer produtos caseiros</div>
+        </div>
+    </div>
+</body>
+</html>
