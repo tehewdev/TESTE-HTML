@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Buscar Dispositivos Bluetooth</title>
+  <title>Controlar Lâmpada Bluetooth</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -31,13 +31,14 @@
       padding: 10px 20px;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      margin: 0.5rem;
     }
 
     button:hover {
       background-color: #2563eb;
     }
 
-    ul {
+    #deviceList {
       list-style: none;
       padding: 0;
       margin-top: 1rem;
@@ -45,18 +46,24 @@
       max-width: 400px;
       background: #333;
       border-radius: 5px;
-      max-height: 300px;
+      max-height: 200px;
       overflow-y: auto;
     }
 
-    li {
+    #deviceList li {
       border-bottom: 1px solid #444;
       padding: 0.8rem 1rem;
-      word-break: break-word;
+      cursor: pointer;
     }
 
-    li:last-child {
-      border-bottom: none;
+    #deviceList li.selected {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-weight: bold;
     }
 
     .error {
@@ -66,36 +73,91 @@
   </style>
 </head>
 <body>
-  <h1>Buscar Dispositivos Bluetooth</h1>
-  <button id="btnConnect">Buscar Dispositivos</button>
+  <h1>Controlar Lâmpada Bluetooth</h1>
+  <button id="btnScan">Buscar Dispositivos</button>
+  <button id="btnTurnOn" disabled>Disparar Liga</button>
   <ul id="deviceList"></ul>
+  <div id="status"></div>
   <div id="error" class="error"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/eruda@2.11.3/eruda.min.js"></script>
   <script>eruda.init();</script>
 
   <script>
-    const btnConnect = document.getElementById('btnConnect');
+    const btnScan = document.getElementById('btnScan');
+    const btnTurnOn = document.getElementById('btnTurnOn');
     const deviceList = document.getElementById('deviceList');
+    const statusDiv = document.getElementById('status');
     const errorDiv = document.getElementById('error');
 
-    btnConnect.addEventListener('click', async () => {
-      errorDiv.textContent = '';
+    let devices = [];
+    let selectedDevice = null;
+    let gattServer = null;
 
+    btnScan.addEventListener('click', async () => {
+      errorDiv.textContent = '';
+      statusDiv.textContent = 'Procurando dispositivos...';
       try {
         const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true
+          acceptAllDevices: true,
+          optionalServices: ['0000fff0-0000-1000-8000-00805f9b34fb'] // exemplo de serviço custom
         });
+        // Evita duplicatas
+        if (!devices.find(d => d.id === device.id)) {
+          devices.push(device);
+          addDeviceToList(device);
+          statusDiv.textContent = 'Dispositivo encontrado. Clique para selecionar.';
+        } else {
+          statusDiv.textContent = 'Dispositivo já listado.';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Erro ao buscar dispositivos: ' + err.message;
+        statusDiv.textContent = '';
+      }
+    });
 
-        console.log('Dispositivo selecionado:', device);
+    function addDeviceToList(device) {
+      const li = document.createElement('li');
+      li.textContent = device.name || 'Sem nome';
+      li.dataset.deviceId = device.id;
+      li.addEventListener('click', () => selectDevice(device, li));
+      deviceList.appendChild(li);
+    }
 
-        // Adiciona o dispositivo sem apagar os anteriores
-        const listItem = document.createElement('li');
-        listItem.textContent = `Nome: ${device.name || 'Sem nome'} - ID: ${device.id}`;
-        deviceList.appendChild(listItem);
+    function selectDevice(device, listItem) {
+      // Remove seleção antiga
+      [...deviceList.children].forEach(li => li.classList.remove('selected'));
+      listItem.classList.add('selected');
+      selectedDevice = device;
+      btnTurnOn.disabled = false;
+      statusDiv.textContent = `Dispositivo selecionado: ${device.name || 'Sem nome'}`;
+      errorDiv.textContent = '';
+    }
+
+    btnTurnOn.addEventListener('click', async () => {
+      if (!selectedDevice) {
+        errorDiv.textContent = 'Selecione um dispositivo antes de disparar comandos.';
+        return;
+      }
+      try {
+        statusDiv.textContent = 'Conectando e enviando comando...';
+        gattServer = await selectedDevice.gatt.connect();
+        const serviceUUID = '0000fff0-0000-1000-8000-00805f9b34fb'; // UUID exemplo, altere conforme seu dispositivo
+        const characteristicUUID = '0000fff3-0000-1000-8000-00805f9b34fb';
+
+        const service = await gattServer.getPrimaryService(serviceUUID);
+        const characteristic = await service.getCharacteristic(characteristicUUID);
+
+        // Comando para ligar a lâmpada - exemplo genérico (hex array)
+        const turnOnCommand = new Uint8Array([0x7e, 0x04, 0x04, 0xf0, 0x00, 0x01, 0xff, 0x00, 0xef]);
+        await characteristic.writeValue(turnOnCommand);
+
+        statusDiv.textContent = 'Comando enviado: Ligar lâmpada';
+        console.log('Lâmpada ligada com comando', turnOnCommand);
       } catch (error) {
-        console.error('Erro no Bluetooth:', error);
-        errorDiv.textContent = 'Erro: ' + error.message;
+        errorDiv.textContent = 'Erro ao enviar comando: ' + error.message;
+        statusDiv.textContent = '';
+        console.error('Erro:', error);
       }
     });
   </script>
