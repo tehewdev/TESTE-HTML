@@ -68,6 +68,9 @@
   <ul id="deviceList"></ul>
   <div id="error" class="error"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/eruda@2.11.3/eruda.min.js"></script>
+  <script>eruda.init();</script>
+
   <script>
     const btnConnect = document.getElementById('btnConnect');
     const deviceList = document.getElementById('deviceList');
@@ -81,11 +84,13 @@
         const device = await navigator.bluetooth.requestDevice({
           acceptAllDevices: true
         });
+        console.log('Dispositivo selecionado:', device);
 
         const listItem = document.createElement('li');
         listItem.textContent = `Nome: ${device.name || 'Sem nome'} - ID: ${device.id}`;
         deviceList.appendChild(listItem);
       } catch (error) {
+        console.error('Erro no Bluetooth:', error);
         errorDiv.textContent = 'Erro: ' + error.message;
       }
     });
