@@ -1,74 +1,377 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Scanner de Serviços</title>
-  <style>
-    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
-    button { font-size: 1.2rem; padding: 10px; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xiaomi LYWSD03MMC Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+            --terminal-bg: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.5px; }
+        p.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .info-box {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Botão Principal */
+        .btn-action {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-action:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-action:disabled { background: #475569; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Terminal */
+        .terminal-window {
+            background: var(--terminal-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+        }
+
+        .terminal-header {
+            background: #333;
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            color: #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-content {
+            font-family: 'JetBrains Mono', monospace;
+            padding: 15px;
+            font-size: 0.85rem;
+            color: #0f0;
+            overflow-y: auto;
+            flex-grow: 1;
+            line-height: 1.4;
+        }
+
+        .log-time { color: #666; margin-right: 8px; }
+        .log-info { color: #60a5fa; }
+        .log-success { color: #34d399; }
+        .log-error { color: #f87171; }
+        .log-warn { color: #fbbf24; }
+
+        /* Indicador de Status */
+        .connection-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #475569;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .connected .connection-dot { background-color: var(--success); box-shadow: 0 0 10px var(--success); }
+
+    </style>
 </head>
 <body>
-  <h3>Scanner de Serviços Bluetooth</h3>
-  <button id="btn">Escanear Serviços do Sensor</button>
-  <div id="log"></div>
 
-  <script>
-    const logDiv = document.getElementById('log');
-    function log(msg) { logDiv.innerHTML += `<div>${msg}</div>`; console.log(msg); }
+    <div class="container">
+        <header>
+            <h1>LYWSD03MMC <span style="color:var(--accent)">Manager</span></h1>
+            <p class="subtitle">Ferramenta de Diagnóstico & Conexão</p>
+        </header>
 
-    document.getElementById('btn').addEventListener('click', async () => {
-      logDiv.innerHTML = '';
-      try {
-        // Pedimos para ver TUDO
-        const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
-          optionalServices: [
-            "0000181a-0000-1000-8000-00805f9b34fb", // Temp padrão
-            "0000180f-0000-1000-8000-00805f9b34fb", // Bateria
-            "ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6"  // Xiaomi Proprietário (Original)
-          ]
+        <!-- Painel de Ação -->
+        <div class="card">
+            <div class="status-header" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
+                <div id="connStatus" class="">
+                    <span class="connection-dot"></span>
+                    <span id="statusText">Desconectado</span>
+                </div>
+            </div>
+            <button id="btnConnect" class="btn-action">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Conectar ao Dispositivo
+            </button>
+        </div>
+
+        <!-- Painel de Informações -->
+        <div class="card">
+            <div class="status-grid">
+                <div class="info-box">
+                    <div class="info-label">Nome</div>
+                    <div class="info-value" id="devName">--</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Firmware</div>
+                    <div class="info-value" id="fwVer">--</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Hardware</div>
+                    <div class="info-value" id="hwVer">--</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Bateria</div>
+                    <div class="info-value" id="batLevel">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <span>Log de Eventos</span>
+                <button onclick="clearLog()" style="background:none; border:none; color:#888; cursor:pointer; font-size:0.7rem;">LIMPAR</button>
+            </div>
+            <div class="terminal-content" id="console">
+                <div><span class="log-time">--:--:--</span> <span class="log-info">Sistema pronto. Clique em conectar.</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const btnConnect = document.getElementById('btnConnect');
+        const consoleDiv = document.getElementById('console');
+        const connStatus = document.getElementById('connStatus');
+        const statusText = document.getElementById('statusText');
+        
+        // Elementos de UI
+        const ui = {
+            name: document.getElementById('devName'),
+            fw: document.getElementById('fwVer'),
+            hw: document.getElementById('hwVer'),
+            bat: document.getElementById('batLevel')
+        };
+
+        let bluetoothDevice;
+        let gattServer;
+
+        // UUIDs Importantes
+        const UUIDS = {
+            deviceInfo: '0000180a-0000-1000-8000-00805f9b34fb',
+            battery: '0000180f-0000-1000-8000-00805f9b34fb',
+            envSensing: '0000181a-0000-1000-8000-00805f9b34fb', // ATC
+            miService: 'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6', // Xiaomi Original
+            firmwareChar: '00002a26-0000-1000-8000-00805f9b34fb',
+            hardwareChar: '00002a27-0000-1000-8000-00805f9b34fb',
+            batteryChar: '00002a19-0000-1000-8000-00805f9b34fb'
+        };
+
+        function log(msg, type = 'info') {
+            const now = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            let colorClass = 'log-info';
+            if(type === 'error') colorClass = 'log-error';
+            if(type === 'success') colorClass = 'log-success';
+            if(type === 'warn') colorClass = 'log-warn';
+
+            line.innerHTML = `<span class="log-time">${now}</span> <span class="${colorClass}">${msg}</span>`;
+            consoleDiv.appendChild(line);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            consoleDiv.innerHTML = '';
+        }
+
+        function updateStatus(isConnected) {
+            if(isConnected) {
+                connStatus.classList.add('connected');
+                statusText.textContent = "Conectado";
+                btnConnect.textContent = "Desconectar";
+                btnConnect.style.background = "#ef4444"; // Vermelho para desconectar
+            } else {
+                connStatus.classList.remove('connected');
+                statusText.textContent = "Desconectado";
+                btnConnect.textContent = "Conectar ao Dispositivo";
+                btnConnect.style.background = ""; // Volta ao azul
+                ui.name.textContent = "--";
+                ui.fw.textContent = "--";
+                ui.hw.textContent = "--";
+                ui.bat.textContent = "--";
+            }
+        }
+
+        async function connect() {
+            try {
+                log("Iniciando busca de dispositivos...", 'info');
+                
+                // Filtros agressivos para achar TUDO (Xiaomi e ATC)
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [
+                        { namePrefix: 'LYWSD03' },
+                        { namePrefix: 'ATC' },
+                        { namePrefix: 'Mi' }
+                    ],
+                    optionalServices: [
+                        UUIDS.deviceInfo, 
+                        UUIDS.battery, 
+                        UUIDS.envSensing,
+                        UUIDS.miService,
+                        "0000fe95-0000-1000-8000-00805f9b34fb" // Xiaomi Legacy
+                    ]
+                });
+
+                bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+                log(`Dispositivo encontrado: ${bluetoothDevice.name}`, 'success');
+                ui.name.textContent = bluetoothDevice.name;
+
+                log("Tentando conectar ao GATT Server...", 'warn');
+                gattServer = await bluetoothDevice.gatt.connect();
+                
+                updateStatus(true);
+                log("Conexão estabelecida!", 'success');
+
+                // --- LEITURA DE INFORMAÇÕES DO SISTEMA ---
+                // Isso funciona mesmo no Firmware Original (Onde seu print mostrava B1.4)
+                log("Lendo Device Info (0x180A)...", 'info');
+                try {
+                    const infoService = await gattServer.getPrimaryService(UUIDS.deviceInfo);
+                    
+                    // Hardware Revision
+                    const hwChar = await infoService.getCharacteristic(UUIDS.hardwareChar);
+                    const hwVal = await hwChar.readValue();
+                    const hwStr = new TextDecoder().decode(hwVal);
+                    ui.hw.textContent = hwStr;
+                    log(`Hardware Rev: ${hwStr}`, 'success');
+
+                    // Firmware Revision
+                    const fwChar = await infoService.getCharacteristic(UUIDS.firmwareChar);
+                    const fwVal = await fwChar.readValue();
+                    const fwStr = new TextDecoder().decode(fwVal);
+                    ui.fw.textContent = fwStr;
+                    log(`Software Rev: ${fwStr}`, 'success');
+                    
+                    if(fwStr.includes("1.0.0")) {
+                        log("ALERTA: Firmware Original Detectado!", 'warn');
+                        log("Para ler temperatura via Web, atualize para ATC.", 'warn');
+                    } else {
+                        log("Firmware Customizado Detectado. Ótimo!", 'success');
+                    }
+
+                } catch (e) {
+                    log("Não foi possível ler Info do Sistema: " + e.message, 'error');
+                }
+
+                // --- TENTATIVA DE BATERIA ---
+                try {
+                    const batService = await gattServer.getPrimaryService(UUIDS.battery);
+                    const batChar = await batService.getCharacteristic(UUIDS.batteryChar);
+                    const batVal = await batChar.readValue();
+                    const level = batVal.getUint8(0);
+                    ui.bat.textContent = level + "%";
+                    log(`Bateria: ${level}%`, 'success');
+                } catch (e) {
+                    log("Serviço de Bateria não acessível.", 'warn');
+                }
+
+                log("Diagnóstico concluído.", 'info');
+
+            } catch (error) {
+                log("Erro na conexão: " + error.message, 'error');
+                updateStatus(false);
+            }
+        }
+
+        function onDisconnected() {
+            log("Dispositivo desconectado.", 'error');
+            updateStatus(false);
+        }
+
+        btnConnect.addEventListener('click', () => {
+            if (gattServer && gattServer.connected) {
+                bluetoothDevice.gatt.disconnect();
+            } else {
+                connect();
+            }
         });
 
-        log(`Conectando em: ${device.name}...`);
-        const server = await device.gatt.connect();
-        log("Conectado! Listando serviços primários...");
-
-        const services = await server.getPrimaryServices();
-        
-        if (services.length === 0) {
-          log("Nenhum serviço encontrado (estranho...)");
-        }
-
-        let achouPadrao = false;
-        let achouXiaomi = false;
-
-        for (const service of services) {
-          log(`--------------------------`);
-          log(`UUID Encontrado: ${service.uuid}`);
-          
-          if (service.uuid.includes("181a")) {
-            log("✅ SERVIÇO PADRÃO (ATC) ENCONTRADO!");
-            achouPadrao = true;
-          }
-          if (service.uuid.includes("ebe0")) {
-            log("⚠️ SERVIÇO XIAOMI ORIGINAL ENCONTRADO.");
-            achouXiaomi = true;
-          }
-        }
-
-        log(`--------------------------`);
-        if (achouXiaomi && !achouPadrao) {
-          log("VEREDITO: Você está com firmware ORIGINAL. O código web não vai funcionar fácil. Troque para ATC.");
-        } else if (achouPadrao) {
-          log("VEREDITO: Firmware correto! O código de leitura deveria funcionar.");
-        }
-
-        device.gatt.disconnect();
-      } catch (err) {
-        log("ERRO: " + err.message);
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
