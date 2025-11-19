@@ -2,60 +2,176 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Leitura Xiaomi LYWSD03MMC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controlar Sensor Xiaomi LYWSD03MMC</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #222; color: #eee; }
-    button { margin: 10px 0; font-size: 1.2rem; padding: 10px; background-color: #3b82f6; border: none; color: white; border-radius: 5px;}
-    pre { background: #333; padding: 10px; border-radius: 5px; max-width: 500px; overflow-x: auto;}
+    body {
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      margin: 0.5rem;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    #deviceList {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+      width: 100%;
+      max-width: 400px;
+      background: #333;
+      border-radius: 5px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    #deviceList li {
+      border-bottom: 1px solid #444;
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+    }
+
+    #deviceList li.selected {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-weight: bold;
+      white-space: pre-wrap;
+      max-width: 400px;
+      background: #333;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .error {
+      margin-top: 1rem;
+      color: #f87171;
+    }
   </style>
 </head>
 <body>
-  <h1>Sensor Xiaomi LYWSD03MMC</h1>
-  <button id="btnConnect">Conectar e Ler Dados</button>
-  <pre id="output">Clique para conectar e ler o sensor</pre>
+  <h1>Controlar Sensor Xiaomi LYWSD03MMC</h1>
+  <button id="btnScan">Buscar Dispositivos</button>
+  <button id="btnRead" disabled>Ler Dados</button>
+  <ul id="deviceList"></ul>
+  <div id="status">Status: Nenhum dispositivo conectado.</div>
+  <div id="error" class="error"></div>
 
-<script>
-  const btnConnect = document.getElementById('btnConnect');
-  const output = document.getElementById('output');
+  <script src="https://cdn.jsdelivr.net/npm/eruda@2.11.3/eruda.min.js"></script>
+  <script>eruda.init();</script>
 
-  btnConnect.addEventListener('click', async () => {
-    output.textContent = 'Solicitando dispositivo...';
+  <script>
+    const btnScan = document.getElementById('btnScan');
+    const btnRead = document.getElementById('btnRead');
+    const deviceList = document.getElementById('deviceList');
+    const statusDiv = document.getElementById('status');
+    const errorDiv = document.getElementById('error');
 
-    try {
-      const device = await navigator.bluetooth.requestDevice({
-        filters: [{ namePrefix: 'LYWSD03' }],     
-        optionalServices: ['181a'] // Environmental Sensing Service
-      });
+    let devices = [];
+    let selectedDevice = null;
+    let gattServer = null;
 
-      output.textContent = `Conectando a ${device.name}
-`;
-      const server = await device.gatt.connect();
+    btnScan.addEventListener('click', async () => {
+      errorDiv.textContent = '';
+      statusDiv.textContent = 'Procurando dispositivos...';
 
-      const service = await server.getPrimaryService('181a'); // Environmental Sensing
-      const temperatureCharacteristic = await service.getCharacteristic('2a6e'); // Temperature
-      const humidityCharacteristic = await service.getCharacteristic('2a6f');    // Humidity
+      try {
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ namePrefix: 'LYWSD03' }],
+          optionalServices: ['181a'] // Environmental Sensing Service
+        });
 
-      // Leitura temperatura
-      const tempValue = await temperatureCharacteristic.readValue();
-      const temperature = tempValue.getInt16(0, /*littleEndian=*/true) / 100;
+        if (!devices.find(d => d.id === device.id)) {
+          devices.push(device);
+          addDeviceToList(device);
+          statusDiv.textContent = 'Dispositivo encontrado. Clique para selecionar.';
+        } else {
+          statusDiv.textContent = 'Dispositivo já listado.';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Erro ao buscar dispositivos: ' + err.message;
+        statusDiv.textContent = '';
+      }
+    });
 
-      // Leitura umidade
-      const humidityValue = await humidityCharacteristic.readValue();
-      const humidity = humidityValue.getUint16(0, /*littleEndian=*/true) / 100;
-
-      output.textContent += `Temperatura: ${temperature.toFixed(2)} °C
-`;
-      output.textContent += `Umidade: ${humidity.toFixed(2)} %
-`;
-
-      await device.gatt.disconnect();
-      output.textContent += 'Desconectado.
-';
-
-    } catch (error) {
-      output.textContent = 'Erro: ' + error;
+    function addDeviceToList(device) {
+      const li = document.createElement('li');
+      li.textContent = device.name || 'Sem nome';
+      li.dataset.deviceId = device.id;
+      li.addEventListener('click', () => selectDevice(device, li));
+      deviceList.appendChild(li);
     }
-  });
-</script>
+
+    function selectDevice(device, listItem) {
+      [...deviceList.children].forEach(li => li.classList.remove('selected'));
+      listItem.classList.add('selected');
+      selectedDevice = device;
+      btnRead.disabled = false;
+      statusDiv.textContent = `Dispositivo selecionado: ${device.name || 'Sem nome'}`;
+      errorDiv.textContent = '';
+    }
+
+    btnRead.addEventListener('click', async () => {
+      if (!selectedDevice) {
+        errorDiv.textContent = 'Selecione um dispositivo antes de ler dados.';
+        return;
+      }
+      errorDiv.textContent = '';
+      statusDiv.textContent = 'Conectando ao dispositivo...';
+
+      try {
+        gattServer = await selectedDevice.gatt.connect();
+
+        const service = await gattServer.getPrimaryService('181a'); // Environmental Sensing
+        const temperatureCharacteristic = await service.getCharacteristic('2a6e'); // Temperature
+        const humidityCharacteristic = await service.getCharacteristic('2a6f');    // Humidity
+
+        const tempValue = await temperatureCharacteristic.readValue();
+        const temperature = tempValue.getInt16(0, true) / 100;
+
+        const humidityValue = await humidityCharacteristic.readValue();
+        const humidity = humidityValue.getUint16(0, true) / 100;
+
+        statusDiv.textContent = `Temperatura: ${temperature.toFixed(2)} °C
+Umidade: ${humidity.toFixed(2)} %`;
+
+        await gattServer.disconnect();
+        statusDiv.textContent += '
+Dispositivo desconectado.';
+      } catch (error) {
+        errorDiv.textContent = 'Erro ao ler dados: ' + error.message;
+        statusDiv.textContent = '';
+        console.error(error);
+      }
+    });
+  </script>
 </body>
 </html>
