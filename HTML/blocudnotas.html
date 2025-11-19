@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minhas Notas PWA</title>
+    <meta name="theme-color" content="#f59e0b">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    
+    <style>
+        :root {
+            --primary: #f59e0b; /* Amarelo Queimado (Estilo Post-it) */
+            --dark: #2d3748;
+            --light: #f7fafc;
+            --card-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        body { background-color: #e2e8f0; padding-bottom: 80px; }
+
+        /* Header */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Grade de Notas */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .note-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            min-height: 150px;
+            border-top: 5px solid var(--primary);
+            cursor: pointer;
+        }
+
+        .note-card:active { transform: scale(0.98); }
+
+        .note-title { font-weight: bold; font-size: 1.1em; margin-bottom: 8px; color: var(--dark); }
+        .note-body { font-size: 0.9em; color: #4a5568; white-space: pre-wrap; flex-grow: 1; overflow: hidden; max-height: 200px; }
+        .note-date { font-size: 0.7em; color: #a0aec0; margin-top: 10px; text-align: right; }
+
+        /* Botão Flutuante (+) */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            border: none;
+            z-index: 200;
+        }
+
+        /* Modal de Edição */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 15px;
+            padding: 20px;
+            animation: slideUp 0.3s;
+        }
+
+        input, textarea {
+            width: 100%;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+        
+        textarea { height: 200px; resize: none; }
+
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-cancel { background: #e2e8f0; color: var(--dark); }
+        .btn-delete { background: #ef4444; color: white; margin-right: auto; }
+
+        /* Nuvem Status */
+        .cloud-status { font-size: 0.8em; opacity: 0.9; cursor: pointer; }
+
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h3>📒 Minhas Notas</h3>
+        <div class="cloud-status" id="btnSync" onclick="syncData()">☁️ Sincronizar</div>
+    </header>
+
+    <div class="notes-grid" id="notesGrid">
+        <!-- As notas vão aparecer aqui -->
+    </div>
+
+    <button class="fab" onclick="openModal()">+</button>
+
+    <!-- Modal de Criar/Editar -->
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <input type="text" id="noteTitle" placeholder="Título da nota...">
+            <textarea id="noteBody" placeholder="Escreva aqui..."></textarea>
+            
+            <div class="modal-actions">
+                <button class="btn-delete" id="btnDelete" onclick="deleteNote()" style="display:none;">🗑️</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="btn-save" onclick="saveNote()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO IGUAL AO OUTRO APP ---
+        // Você precisa criar um BIN novo no JSONBin.io para não misturar com o financeiro!
+        const APP_CONFIG = {
+            API_KEY: '$2a$10$7miIaA34GlZ6JG5gwX0xZuGs6JL/4cnAzYxc1xjZ7kjuOCEkymKdS', // Use a mesma chave mestre
+            BIN_ID: 'COLOQUE_SEU_NOVO_BIN_ID_AQUI' // <--- CRIE UM BIN NOVO E COLE O ID AQUI
+        };
+
+        let notes = JSON.parse(localStorage.getItem('app_notas')) || [];
+        let currentEditId = null;
+
+        // 1. Inicialização
+        function renderNotes() {
+            const grid = document.getElementById('notesGrid');
+            grid.innerHTML = '';
+
+            if (notes.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; width:100%; color:#aaa; margin-top:50px">Nenhuma nota ainda...</p>';
+                return;
+            }
+
+            // Ordena pela mais recente
+            notes.sort((a, b) => b.updatedAt - a.updatedAt).forEach(note => {
+                const div = document.createElement('div');
+                div.className = 'note-card';
+                div.onclick = () => openModal(note.id);
+                div.innerHTML = `
+                    <div class="note-title">${note.title}</div>
+                    <div class="note-body">${note.body}</div>
+                    <div class="note-date">${new Date(note.updatedAt).toLocaleDateString()}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // 2. Funções do Modal
+        function openModal(id = null) {
+            const modal = document.getElementById('noteModal');
+            const btnDelete = document.getElementById('btnDelete');
+            
+            if (id) {
+                // Modo Edição
+                const note = notes.find(n => n.id === id);
+                document.getElementById('noteTitle').value = note.title;
+                document.getElementById('noteBody').value = note.body;
+                currentEditId = id;
+                btnDelete.style.display = 'block';
+            } else {
+                // Modo Criação
+                document.getElementById('noteTitle').value = '';
+                document.getElementById('noteBody').value = '';
+                currentEditId = null;
+                btnDelete.style.display = 'none';
+            }
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('noteModal').classList.remove('active');
+        }
+
+        // 3. CRUD (Salvar e Deletar)
+        function saveNote() {
+            const title = document.getElementById('noteTitle').value;
+            const body = document.getElementById('noteBody').value;
+
+            if (!title && !body) return closeModal();
+
+            if (currentEditId) {
+                // Atualizar existente
+                const index = notes.findIndex(n => n.id === currentEditId);
+                notes[index] = { ...notes[index], title, body, updatedAt: Date.now() };
+            } else {
+                // Criar nova
+                const newNote = {
+                    id: Date.now(),
+                    title: title || 'Sem título',
+                    body: body,
+                    updatedAt: Date.now()
+                };
+                notes.push(newNote);
+            }
+
+            localStorage.setItem('app_notas', JSON.stringify(notes));
+            renderNotes();
+            closeModal();
+        }
+
+        function deleteNote() {
+            if (confirm('Apagar esta nota?')) {
+                notes = notes.filter(n => n.id !== currentEditId);
+                localStorage.setItem('app_notas', JSON.stringify(notes));
+                renderNotes();
+                closeModal();
+            }
+        }
+
+        // 4. Sincronização (Nuvem)
+        async function syncData() {
+            const btn = document.getElementById('btnSync');
+            
+            if(APP_CONFIG.BIN_ID === 'COLOQUE_SEU_NOVO_BIN_ID_AQUI') {
+                alert('Você precisa configurar o BIN_ID no código primeiro!');
+                return;
+            }
+
+            btn.textContent = '🔄 Carregando...';
+            
+            try {
+                // 1. Busca da nuvem
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${APP_CONFIG.BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': APP_CONFIG.API_KEY }
+                });
+                const data = await response.json();
+                const cloudNotes = data.record.notes || [];
+
+                // 2. Mescla Inteligente (Simples: Nuvem ganha se for maior, ou use lógica de data)
+                // Aqui vamos assumir que baixar da nuvem atualiza o local
+                if (confirm('Deseja baixar as notas da nuvem? (Isso sobrescreve o local)')) {
+                    notes = cloudNotes;
+                    localStorage.setItem('app_notas', JSON.stringify(notes));
+                    renderNotes();
+                } else {
+                    // Se cancelou, pergunta se quer subir o local
+                    if(confirm('Deseja ENVIAR suas notas locais para a nuvem?')) {
+                        await fetch(`https://api.jsonbin.io/v3/b/${APP_CONFIG.BIN_ID}`, {
+                            method: 'PUT',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-Master-Key': APP_CONFIG.API_KEY
+                            },
+                            body: JSON.stringify({ notes: notes })
+                        });
+                        alert('Salvo na nuvem!');
+                    }
+                }
+            } catch (error) {
+                alert('Erro na sincronização: ' + error.message);
+            } finally {
+                btn.textContent = '☁️ Sincronizar';
+            }
+        }
+
+        // Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+
+        // Iniciar
+        renderNotes();
+    </script>
+</body>
+</html>
