@@ -3,229 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xiaomi LYWSD03MMC Manager</title>
+    <title>Xiaomi LYWSD03MMC Manager (Stock Reader)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --success: #10b981;
-            --error: #ef4444;
-            --warn: #f59e0b;
-            --terminal-bg: #000000;
-        }
-
+        :root { --bg-color: #0f172a; --card-bg: #1e293b; --accent: #3b82f6; --text-main: #f1f5f9; --text-muted: #94a3b8; --success: #10b981; --error: #ef4444; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        header { text-align: center; margin-bottom: 10px; }
-        h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.5px; }
-        p.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 5px; }
-
-        /* Cards */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* Áreas de Destaque (Temp/Umid) */
-        .sensor-highlight {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .sensor-card {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sensor-icon { font-size: 1.5rem; margin-bottom: 5px; }
-        .sensor-value { font-size: 1.8rem; font-weight: 700; color: var(--text-main); }
-        .sensor-unit { font-size: 0.9rem; color: var(--text-muted); margin-top: -5px; }
-        .sensor-label { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;}
-
-        /* Grid de Status Secundário */
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .info-box {
-            background: rgba(0,0,0,0.2);
-            padding: 12px;
-            border-radius: 8px;
-        }
-
-        .info-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-        .info-value { font-size: 0.95rem; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        /* Botão Principal */
-        .btn-action {
-            width: 100%;
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-        }
-        .btn-action:hover { background: var(--accent-hover); transform: translateY(-2px); }
-
-        /* Terminal */
-        .terminal-window {
-            background: var(--terminal-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            height: 250px;
-        }
-
-        .terminal-header {
-            background: #333;
-            padding: 8px 15px;
-            font-size: 0.75rem;
-            color: #ccc;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .terminal-content {
-            font-family: 'JetBrains Mono', monospace;
-            padding: 15px;
-            font-size: 0.8rem;
-            color: #0f0;
-            overflow-y: auto;
-            flex-grow: 1;
-            line-height: 1.4;
-        }
-
-        .log-time { color: #666; margin-right: 8px; }
-        .log-info { color: #60a5fa; }
-        .log-success { color: #34d399; }
-        .log-error { color: #f87171; }
-        .log-warn { color: #fbbf24; }
-
-        /* Indicador de Status */
-        .connection-dot { height: 8px; width: 8px; background-color: #475569; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .connected .connection-dot { background-color: var(--success); box-shadow: 0 0 10px var(--success); }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; }
+        h1 { text-align: center; font-size: 1.5rem; font-weight: 600; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
+        
+        /* Destaque para Temperatura e Umidade */
+        .sensor-display { display: flex; justify-content: space-around; margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; }
+        .sensor-item { text-align: center; }
+        .sensor-val { font-size: 2.5rem; font-weight: 700; display: block; color: var(--accent); }
+        .sensor-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; }
+        
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-box { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; }
+        .info-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+        .info-value { font-size: 1.1rem; font-weight: 600; }
+        
+        .btn-action { width: 100%; background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-action:hover { background: #2563eb; }
+        .terminal-window { background: #000; border-radius: 12px; height: 200px; overflow: hidden; border: 1px solid #333; display: flex; flex-direction: column; }
+        .terminal-content { padding: 15px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #0f0; overflow-y: auto; flex-grow: 1; }
+        .log-time { color: #666; margin-right: 8px; } .log-err { color: #ef4444; } .log-warn { color: #fbbf24; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <header>
-            <h1>LYWSD03MMC <span style="color:var(--accent)">Manager</span></h1>
-            <p class="subtitle">Painel Completo</p>
-        </header>
+        <h1>LYWSD03MMC <span style="color:var(--accent)">Reader</span></h1>
 
-        <!-- Botão e Status -->
-        <div class="card" style="padding: 15px;">
-            <div class="status-header" style="margin-bottom: 15px; display: flex; align-items: center; justify-content: center;">
-                <div id="connStatus" class="">
-                    <span class="connection-dot"></span>
-                    <span id="statusText" style="font-size: 0.9rem; color: var(--text-muted);">Desconectado</span>
-                </div>
-            </div>
-            <button id="btnConnect" class="btn-action">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                Conectar
-            </button>
-        </div>
-
-        <!-- Sensores Principais (Novidade!) -->
-        <div class="sensor-highlight">
-            <div class="sensor-card">
-                <div class="sensor-icon">🌡️</div>
-                <div class="sensor-value" id="valTemp">--</div>
-                <div class="sensor-unit">°C</div>
-                <div class="sensor-label">Temperatura</div>
-            </div>
-            <div class="sensor-card">
-                <div class="sensor-icon">💧</div>
-                <div class="sensor-value" id="valHum">--</div>
-                <div class="sensor-unit">%</div>
-                <div class="sensor-label">Umidade</div>
-            </div>
-        </div>
-
-        <!-- Informações Técnicas -->
         <div class="card">
-            <h3 style="font-size: 0.9rem; color: #666; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px;">DETALHES DO SISTEMA</h3>
-            <div class="status-grid">
-                <div class="info-box">
-                    <div class="info-label">Nome</div>
-                    <div class="info-value" id="devName">--</div>
+            <div id="connStatus" style="text-align:center; margin-bottom:15px; color:var(--text-muted)">Desconectado</div>
+            <button id="btnConnect" class="btn-action">Conectar e Ler</button>
+            
+            <div class="sensor-display">
+                <div class="sensor-item">
+                    <span class="sensor-val" id="valTemp">--</span>
+                    <span class="sensor-label">Temperatura °C</span>
                 </div>
-                <div class="info-box">
-                    <div class="info-label">Bateria</div>
-                    <div class="info-value" id="batLevel" style="color: var(--success);">--</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Firmware</div>
-                    <div class="info-value" id="fwVer">--</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Hardware</div>
-                    <div class="info-value" id="hwVer">--</div>
+                <div class="sensor-item">
+                    <span class="sensor-val" id="valHum">--</span>
+                    <span class="sensor-label">Umidade %</span>
                 </div>
             </div>
         </div>
 
-        <!-- Terminal -->
-        <div class="terminal-window">
-            <div class="terminal-header">
-                <span>LOG DO SISTEMA</span>
-                <button onclick="clearLog()" style="background:none; border:none; color:#888; cursor:pointer; font-size:0.6rem;">LIMPAR</button>
+        <div class="card">
+            <div class="status-grid">
+                <div class="info-box"><div class="info-label">Firmware</div><div class="info-value" id="fwVer">--</div></div>
+                <div class="info-box"><div class="info-label">Bateria</div><div class="info-value" id="batLevel">--</div></div>
             </div>
+        </div>
+
+        <div class="terminal-window">
             <div class="terminal-content" id="console">
-                <div><span class="log-time">--:--</span> <span class="log-info">Pronto para conectar.</span></div>
+                <div><span class="log-time">--:--</span> Sistema pronto.</div>
             </div>
         </div>
     </div>
@@ -233,180 +70,148 @@
     <script>
         const btnConnect = document.getElementById('btnConnect');
         const consoleDiv = document.getElementById('console');
-        const connStatus = document.getElementById('connStatus');
-        const statusText = document.getElementById('statusText');
-        
         const ui = {
-            name: document.getElementById('devName'),
-            fw: document.getElementById('fwVer'),
-            hw: document.getElementById('hwVer'),
-            bat: document.getElementById('batLevel'),
             temp: document.getElementById('valTemp'),
-            hum: document.getElementById('valHum')
+            hum: document.getElementById('valHum'),
+            fw: document.getElementById('fwVer'),
+            bat: document.getElementById('batLevel'),
+            status: document.getElementById('connStatus')
         };
 
-        let bluetoothDevice;
-        let gattServer;
-
-        // UUIDs
-        const UUIDS = {
-            deviceInfo: '0000180a-0000-1000-8000-00805f9b34fb',
-            battery: '0000180f-0000-1000-8000-00805f9b34fb',
-            envSensing: '0000181a-0000-1000-8000-00805f9b34fb', // ATC Standard
-            firmwareChar: '00002a26-0000-1000-8000-00805f9b34fb',
-            hardwareChar: '00002a27-0000-1000-8000-00805f9b34fb',
-            batteryChar: '00002a19-0000-1000-8000-00805f9b34fb',
-            tempChar: '00002a6e-0000-1000-8000-00805f9b34fb',
-            humChar: '00002a6f-0000-1000-8000-00805f9b34fb'
-        };
+        let device, server;
 
         function log(msg, type = 'info') {
-            const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             const line = document.createElement('div');
-            let colorClass = 'log-info';
-            if(type === 'error') colorClass = 'log-error';
-            if(type === 'success') colorClass = 'log-success';
-            if(type === 'warn') colorClass = 'log-warn';
-
-            line.innerHTML = `<span class="log-time">${now}</span> <span class="${colorClass}">${msg}</span>`;
+            const time = new Date().toLocaleTimeString().split(' ')[0];
+            line.innerHTML = `<span class="log-time">${time}</span> <span class="${type === 'error' ? 'log-err' : type === 'warn' ? 'log-warn' : ''}">${msg}</span>`;
             consoleDiv.appendChild(line);
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
         }
 
-        function clearLog() { consoleDiv.innerHTML = ''; }
-
-        function updateStatus(isConnected) {
-            if(isConnected) {
-                connStatus.classList.add('connected');
-                statusText.textContent = "Conectado";
-                btnConnect.textContent = "Desconectar";
-                btnConnect.style.background = "#ef4444";
-            } else {
-                connStatus.classList.remove('connected');
-                statusText.textContent = "Desconectado";
-                btnConnect.textContent = "Conectar";
-                btnConnect.style.background = "";
-                ui.name.textContent = "--";
-                ui.fw.textContent = "--";
-                ui.hw.textContent = "--";
-                ui.bat.textContent = "--";
-                ui.temp.textContent = "--";
-                ui.hum.textContent = "--";
-            }
-        }
-
         async function connect() {
             try {
-                log("Buscando dispositivos...", 'info');
-                
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                if (device && device.gatt.connected) {
+                    await device.gatt.disconnect();
+                    return;
+                }
+
+                log("Buscando dispositivos...");
+                device = await navigator.bluetooth.requestDevice({
                     filters: [{ namePrefix: 'LYWSD03' }, { namePrefix: 'ATC' }, { namePrefix: 'Mi' }],
-                    optionalServices: [UUIDS.deviceInfo, UUIDS.battery, UUIDS.envSensing]
+                    optionalServices: [
+                        '0000180a-0000-1000-8000-00805f9b34fb', // Device Info
+                        '0000180f-0000-1000-8000-00805f9b34fb', // Battery
+                        '0000181a-0000-1000-8000-00805f9b34fb', // ATC Temp
+                        'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6'  // Xiaomi Original
+                    ]
                 });
 
-                bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
-                ui.name.textContent = bluetoothDevice.name;
+                device.addEventListener('gattserverdisconnected', () => {
+                    ui.status.textContent = "Desconectado";
+                    ui.status.style.color = "#94a3b8";
+                    btnConnect.textContent = "Conectar e Ler";
+                    btnConnect.style.background = "";
+                    log("Desconectado.", 'warn');
+                });
 
-                log(`Conectando a ${bluetoothDevice.name}...`, 'warn');
-                gattServer = await bluetoothDevice.gatt.connect();
-                updateStatus(true);
-                log("Conexão estabelecida!", 'success');
-
-                // 1. Info do Sistema
-                await readSystemInfo();
-
-                // 2. Bateria
-                await readBattery();
-
-                // 3. Sensores (Temperatura/Umidade)
-                await startSensorNotifications();
-
-            } catch (error) {
-                log("Erro: " + error.message, 'error');
-                updateStatus(false);
-            }
-        }
-
-        async function readSystemInfo() {
-            try {
-                const service = await gattServer.getPrimaryService(UUIDS.deviceInfo);
+                log("Conectando...");
+                server = await device.gatt.connect();
                 
-                const hwChar = await service.getCharacteristic(UUIDS.hardwareChar);
-                const hwVal = await hwChar.readValue();
-                const hwStr = new TextDecoder().decode(hwVal);
-                ui.hw.textContent = hwStr;
+                ui.status.textContent = "Conectado";
+                ui.status.style.color = "#10b981";
+                btnConnect.textContent = "Desconectar";
+                btnConnect.style.background = "#ef4444";
 
-                const fwChar = await service.getCharacteristic(UUIDS.firmwareChar);
-                const fwVal = await fwChar.readValue();
-                const fwStr = new TextDecoder().decode(fwVal);
-                ui.fw.textContent = fwStr;
+                // 1. Tenta ler Firmware e Bateria (Básico)
+                await readBasicInfo(server);
+
+                // 2. Decide qual método usar (ATC Fácil ou Xiaomi Difícil)
+                const services = await server.getPrimaryServices();
+                const hasATC = services.some(s => s.uuid.includes('181a'));
                 
-                // Verificação crucial para o usuário
-                if(fwStr.includes("1.0.0")) {
-                    log("⚠️ Firmware Original detectado!", 'warn');
-                    log("A leitura de sensores é bloqueada neste firmware.", 'warn');
-                    ui.temp.textContent = "🔒";
-                    ui.hum.textContent = "🔒";
-                    ui.temp.style.fontSize = "1.2rem"; // Ajuste visual
+                if (hasATC) {
+                    log("Modo ATC detectado (Fácil).");
+                    await startATCReading(server);
                 } else {
-                    log("Firmware Customizado. Tentando ler sensores...", 'success');
+                    log("Modo Xiaomi Original detectado.");
+                    log("⚠️ ATENÇÃO: Para ler dados do firmware original, é necessário ativar notificações no UUID ebe0...", 'warn');
+                    
+                    // Tenta ler o UUID proprietário da Xiaomi
+                    try {
+                        const service = await server.getPrimaryService('ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6');
+                        // Característica de dados (Notification)
+                        const char = await service.getCharacteristic('ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6');
+                        
+                        await char.startNotifications();
+                        char.addEventListener('characteristicvaluechanged', handleXiaomiData);
+                        log("Escutando dados Xiaomi... Aguarde atualização.");
+                    } catch(e) {
+                        log("Erro ao acessar serviço Xiaomi: " + e.message, 'error');
+                        log("DICA: Troque o firmware para ATC para facilitar.", 'warn');
+                    }
                 }
 
-            } catch (e) { log("Erro ao ler info: " + e.message, 'error'); }
-        }
-
-        async function readBattery() {
-            try {
-                const service = await gattServer.getPrimaryService(UUIDS.battery);
-                const char = await service.getCharacteristic(UUIDS.batteryChar);
-                const val = await char.readValue();
-                ui.bat.textContent = val.getUint8(0) + "%";
-            } catch (e) { log("Bateria não disponível.", 'warn'); }
-        }
-
-        async function startSensorNotifications() {
-            try {
-                // Tenta pegar o serviço que só existe no Firmware ATC/PVVX
-                const service = await gattServer.getPrimaryService(UUIDS.envSensing);
-                
-                // Temperatura
-                const tempChar = await service.getCharacteristic(UUIDS.tempChar);
-                await tempChar.startNotifications();
-                tempChar.addEventListener('characteristicvaluechanged', (e) => {
-                    const temp = e.target.value.getInt16(0, true) / 100;
-                    ui.temp.textContent = temp.toFixed(1);
-                    ui.temp.style.fontSize = "1.8rem";
-                });
-
-                // Umidade
-                const humChar = await service.getCharacteristic(UUIDS.humChar);
-                await humChar.startNotifications();
-                humChar.addEventListener('characteristicvaluechanged', (e) => {
-                    const hum = e.target.value.getUint16(0, true) / 100;
-                    ui.hum.textContent = hum.toFixed(0);
-                });
-                
-                log("Leitura de sensores iniciada!", 'success');
-
-            } catch (e) {
-                // Se cair aqui, é porque o serviço 181a não existe (Firmware Original)
-                log("❌ Falha ao acessar Sensores.", 'error');
-                if(ui.fw.textContent.includes("1.0.0")) {
-                    log("MOTIVO: O Firmware 1.0.0 bloqueia essa leitura.", 'error');
-                }
+            } catch (err) {
+                log("Erro: " + err.message, 'error');
             }
         }
 
-        function onDisconnected() {
-            log("Dispositivo desconectado.", 'error');
-            updateStatus(false);
+        async function readBasicInfo(server) {
+            try {
+                const infoService = await server.getPrimaryService('0000180a-0000-1000-8000-00805f9b34fb');
+                const fwChar = await infoService.getCharacteristic('00002a26-0000-1000-8000-00805f9b34fb');
+                const fwVal = await fwChar.readValue();
+                ui.fw.textContent = new TextDecoder().decode(fwVal);
+
+                const batService = await server.getPrimaryService('0000180f-0000-1000-8000-00805f9b34fb');
+                const batChar = await batService.getCharacteristic('00002a19-0000-1000-8000-00805f9b34fb');
+                const batVal = await batChar.readValue();
+                ui.bat.textContent = batVal.getUint8(0) + "%";
+            } catch (e) { console.log(e); }
         }
 
-        btnConnect.addEventListener('click', () => {
-            if (gattServer && gattServer.connected) bluetoothDevice.gatt.disconnect();
-            else connect();
-        });
+        async function startATCReading(server) {
+            try {
+                const service = await server.getPrimaryService('0000181a-0000-1000-8000-00805f9b34fb');
+                const char = await service.getCharacteristic('00002a6e-0000-1000-8000-00805f9b34fb'); // Temp
+                await char.startNotifications();
+                char.addEventListener('characteristicvaluechanged', (e) => {
+                    const val = e.target.value;
+                    const temp = val.getInt16(0, true) / 100;
+                    ui.temp.textContent = temp.toFixed(1);
+                    log(`Temp: ${temp}°C`);
+                });
+                
+                // Umidade ATC (simples, lê uma vez para testar)
+                const humChar = await service.getCharacteristic('00002a6f-0000-1000-8000-00805f9b34fb');
+                const humVal = await humChar.readValue();
+                ui.hum.textContent = (humVal.getUint16(0, true) / 100).toFixed(0);
 
+            } catch(e) { log("Erro ATC: " + e.message, 'error'); }
+        }
+
+        function handleXiaomiData(event) {
+            const value = event.target.value;
+            // O Firmware original manda dados brutos aqui (0xebe0ccc1)
+            // O formato é complexo e geralmente requer descriptografia se estiver pareado.
+            // Mas às vezes os bytes 0-2 contêm temperatura * 100 se não estiver criptografado.
+            
+            // Tentativa de interpretação direta (Sem BindKey):
+            if (value.byteLength >= 5) {
+                const temp = value.getInt16(0, true) / 100;
+                const hum = value.getUint8(2);
+                
+                log(`Dados Recebidos Raw: ${temp}°C / ${hum}%`);
+                
+                // Filtro básico para evitar lixo
+                if(temp > -40 && temp < 80) ui.temp.textContent = temp.toFixed(1);
+                if(hum > 0 && hum <= 100) ui.hum.textContent = hum;
+            } else {
+                log("Pacote Xiaomi recebido (Criptografado ou Incompatível)", 'warn');
+            }
+        }
+
+        btnConnect.addEventListener('click', connect);
     </script>
 </body>
 </html>
