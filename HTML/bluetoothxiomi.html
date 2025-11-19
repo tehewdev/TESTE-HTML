@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Leitura Xiaomi LYWSD03MMC</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #222; color: #eee; }
+    button { margin: 10px 0; font-size: 1.2rem; padding: 10px; background-color: #3b82f6; border: none; color: white; border-radius: 5px;}
+    pre { background: #333; padding: 10px; border-radius: 5px; max-width: 500px; overflow-x: auto;}
+  </style>
+</head>
+<body>
+  <h1>Sensor Xiaomi LYWSD03MMC</h1>
+  <button id="btnConnect">Conectar e Ler Dados</button>
+  <pre id="output">Clique para conectar e ler o sensor</pre>
+
+<script>
+  const btnConnect = document.getElementById('btnConnect');
+  const output = document.getElementById('output');
+
+  btnConnect.addEventListener('click', async () => {
+    output.textContent = 'Solicitando dispositivo...';
+
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: 'LYWSD03' }],     
+        optionalServices: ['181a'] // Environmental Sensing Service
+      });
+
+      output.textContent = `Conectando a ${device.name}
+`;
+      const server = await device.gatt.connect();
+
+      const service = await server.getPrimaryService('181a'); // Environmental Sensing
+      const temperatureCharacteristic = await service.getCharacteristic('2a6e'); // Temperature
+      const humidityCharacteristic = await service.getCharacteristic('2a6f');    // Humidity
+
+      // Leitura temperatura
+      const tempValue = await temperatureCharacteristic.readValue();
+      const temperature = tempValue.getInt16(0, /*littleEndian=*/true) / 100;
+
+      // Leitura umidade
+      const humidityValue = await humidityCharacteristic.readValue();
+      const humidity = humidityValue.getUint16(0, /*littleEndian=*/true) / 100;
+
+      output.textContent += `Temperatura: ${temperature.toFixed(2)} °C
+`;
+      output.textContent += `Umidade: ${humidity.toFixed(2)} %
+`;
+
+      await device.gatt.disconnect();
+      output.textContent += 'Desconectado.
+';
+
+    } catch (error) {
+      output.textContent = 'Erro: ' + error;
+    }
+  });
+</script>
+</body>
+</html>
