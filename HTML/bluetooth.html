@@ -1,42 +1,92 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<title>Conectar dispositivo Bluetooth</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Buscar Dispositivos Bluetooth</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #222;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    button {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #2563eb;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+      width: 100%;
+      max-width: 400px;
+      background: #333;
+      border-radius: 5px;
+    }
+
+    li {
+      border-bottom: 1px solid #444;
+      padding: 0.8rem 1rem;
+    }
+
+    li:last-child {
+      border-bottom: none;
+    }
+
+    .error {
+      margin-top: 1rem;
+      color: #f87171;
+    }
+  </style>
 </head>
 <body>
-  <h1>Conectar dispositivo Bluetooth</h1>
-  <button id="btnConnect">Conectar Bluetooth</button>
-  <pre id="output"></pre>
+  <h1>Buscar Dispositivos Bluetooth</h1>
+  <button id="btnConnect">Buscar Dispositivos</button>
+  <ul id="deviceList"></ul>
+  <div id="error" class="error"></div>
 
   <script>
-    const output = document.getElementById('output');
     const btnConnect = document.getElementById('btnConnect');
+    const deviceList = document.getElementById('deviceList');
+    const errorDiv = document.getElementById('error');
 
     btnConnect.addEventListener('click', async () => {
+      errorDiv.textContent = '';
+      deviceList.innerHTML = '';
+
       try {
         const device = await navigator.bluetooth.requestDevice({
-          acceptAllDevices: true,
-          optionalServices: ['battery_service'] // exemplo de serviço
+          acceptAllDevices: true
         });
-        output.textContent = `Dispositivo selecionado: ${device.name}`;
 
-        const server = await device.gatt.connect();
-        output.textContent += '
-Conectado ao dispositivo';
-
-        // Exemplo: acessar serviço de bateria
-        const service = await server.getPrimaryService('battery_service');
-        const characteristic = await service.getCharacteristic('battery_level');
-        const value = await characteristic.readValue();
-        const batteryLevel = value.getUint8(0);
-        output.textContent += `
-Nível da bateria: ${batteryLevel}%`;
-
-        // Eventuais comandos para controlar dispositivo podem ser inseridos aqui
-
+        const listItem = document.createElement('li');
+        listItem.textContent = `Nome: ${device.name || 'Sem nome'} - ID: ${device.id}`;
+        deviceList.appendChild(listItem);
       } catch (error) {
-        output.textContent = 'Erro: ' + error;
+        errorDiv.textContent = 'Erro: ' + error.message;
       }
     });
   </script>
