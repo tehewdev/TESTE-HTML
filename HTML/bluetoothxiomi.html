@@ -1,77 +1,74 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Leitor ATC (Simples)</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; text-align: center; }
-        button { font-size: 20px; padding: 10px 20px; margin: 20px; }
-        #log { text-align: left; background: #f0f0f0; padding: 10px; height: 300px; overflow: auto; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Scanner de Serviços</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+    button { font-size: 1.2rem; padding: 10px; cursor: pointer; }
+  </style>
 </head>
 <body>
-    <h2>Teste ATC / PVVX</h2>
-    <button id="btn">1. Parear e Ler</button>
-    <div id="result" style="font-size: 24px; font-weight: bold; margin: 20px;">--</div>
-    <pre id="log"></pre>
+  <h3>Scanner de Serviços Bluetooth</h3>
+  <button id="btn">Escanear Serviços do Sensor</button>
+  <div id="log"></div>
 
-    <script>
-        const logDiv = document.getElementById('log');
-        function log(msg) { 
-            logDiv.innerHTML += msg + '<br>'; 
-            console.log(msg); 
+  <script>
+    const logDiv = document.getElementById('log');
+    function log(msg) { logDiv.innerHTML += `<div>${msg}</div>`; console.log(msg); }
+
+    document.getElementById('btn').addEventListener('click', async () => {
+      logDiv.innerHTML = '';
+      try {
+        // Pedimos para ver TUDO
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [
+            "0000181a-0000-1000-8000-00805f9b34fb", // Temp padrão
+            "0000180f-0000-1000-8000-00805f9b34fb", // Bateria
+            "ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6"  // Xiaomi Proprietário (Original)
+          ]
+        });
+
+        log(`Conectando em: ${device.name}...`);
+        const server = await device.gatt.connect();
+        log("Conectado! Listando serviços primários...");
+
+        const services = await server.getPrimaryServices();
+        
+        if (services.length === 0) {
+          log("Nenhum serviço encontrado (estranho...)");
         }
 
-        document.getElementById('btn').addEventListener('click', async () => {
-            try {
-                log("Iniciando busca...");
-                
-                // Tenta buscar aceitando todos os dispositivos primeiro para evitar filtros errados
-                const device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
-                    optionalServices: [
-                        "0000181a-0000-1000-8000-00805f9b34fb", // Environmental Sensing
-                        "0000180f-0000-1000-8000-00805f9b34fb"  // Battery
-                    ]
-                });
+        let achouPadrao = false;
+        let achouXiaomi = false;
 
-                log(`Dispositivo selecionado: ${device.name}`);
-                log("Tentando conectar (pode demorar 5-10s)...");
+        for (const service of services) {
+          log(`--------------------------`);
+          log(`UUID Encontrado: ${service.uuid}`);
+          
+          if (service.uuid.includes("181a")) {
+            log("✅ SERVIÇO PADRÃO (ATC) ENCONTRADO!");
+            achouPadrao = true;
+          }
+          if (service.uuid.includes("ebe0")) {
+            log("⚠️ SERVIÇO XIAOMI ORIGINAL ENCONTRADO.");
+            achouXiaomi = true;
+          }
+        }
 
-                const server = await device.gatt.connect();
-                log("Conectado!");
+        log(`--------------------------`);
+        if (achouXiaomi && !achouPadrao) {
+          log("VEREDITO: Você está com firmware ORIGINAL. O código web não vai funcionar fácil. Troque para ATC.");
+        } else if (achouPadrao) {
+          log("VEREDITO: Firmware correto! O código de leitura deveria funcionar.");
+        }
 
-                /* 
-                   Se o firmware for ATC/PVVX, ele expõe o serviço 181a.
-                   Se for original, isso aqui vai falhar.
-                */
-                log("Buscando serviço de Temperatura (181a)...");
-                const service = await server.getPrimaryService("0000181a-0000-1000-8000-00805f9b34fb");
-                
-                log("Lendo característica de Temperatura...");
-                const char = await service.getCharacteristic("00002a6e-0000-1000-8000-00805f9b34fb");
-                
-                // Leitura contínua (Notificação) para não precisar ficar clicando
-                await char.startNotifications();
-                char.addEventListener('characteristicvaluechanged', (event) => {
-                    const value = event.target.value;
-                    const temp = value.getInt16(0, true) / 100;
-                    document.getElementById('result').innerText = `Temp: ${temp}°C`;
-                    log(`Nova leitura: ${temp}°C`);
-                });
-
-                log("Aguardando dados...");
-
-            } catch (error) {
-                log(`<span style="color:red">ERRO: ${error.message}</span>`);
-                if (error.message.includes("NetworkError")) {
-                    log("DICA: O dispositivo recusou a conexão. Reinicie o Bluetooth do celular ou troque o firmware.");
-                }
-                if (error.message.includes("No Services found")) {
-                    log("DICA: Conectou, mas não achou o serviço. Seu firmware provavelmente é Original (Bloqueado).");
-                }
-            }
-        });
-    </script>
+        device.gatt.disconnect();
+      } catch (err) {
+        log("ERRO: " + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
