@@ -1,163 +1,77 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Leitor Xiaomi LYWSD03MMC (ATC Firmware)</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #1a1a1a;
-      color: #f0f0f0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      min-height: 100vh;
-    }
-
-    h1 { margin-bottom: 1rem; text-align: center; font-size: 1.5rem; }
-    
-    .card {
-      background: #2d2d2d;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-      width: 100%;
-      max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .data-display {
-      display: flex;
-      justify-content: space-around;
-      background: #333;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .data-item strong { display: block; font-size: 0.9rem; color: #aaa; }
-    .data-item span { font-size: 1.5rem; font-weight: bold; }
-
-    button {
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      padding: 12px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button:disabled { background-color: #555; cursor: not-allowed; opacity: 0.7; }
-    button:hover:not(:disabled) { background-color: #2563eb; }
-
-    #status { font-size: 0.9rem; color: #ccc; text-align: center; min-height: 1.2em; }
-    .error { color: #ef4444 !important; }
-    
-    /* Console flutuante para debug mobile */
-    #debug-console { display: none; } 
-  </style>
+    <meta charset="UTF-8">
+    <title>Leitor ATC (Simples)</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; text-align: center; }
+        button { font-size: 20px; padding: 10px 20px; margin: 20px; }
+        #log { text-align: left; background: #f0f0f0; padding: 10px; height: 300px; overflow: auto; }
+    </style>
 </head>
 <body>
+    <h2>Teste ATC / PVVX</h2>
+    <button id="btn">1. Parear e Ler</button>
+    <div id="result" style="font-size: 24px; font-weight: bold; margin: 20px;">--</div>
+    <pre id="log"></pre>
 
-  <h1>Sensor Xiaomi (ATC Firmware)</h1>
+    <script>
+        const logDiv = document.getElementById('log');
+        function log(msg) { 
+            logDiv.innerHTML += msg + '<br>'; 
+            console.log(msg); 
+        }
 
-  <div class="card">
-    <div class="data-display">
-      <div class="data-item">
-        <strong>Temp</strong>
-        <span id="valTemp">--</span> °C
-      </div>
-      <div class="data-item">
-        <strong>Umid</strong>
-        <span id="valHum">--</span> %
-      </div>
-      <div class="data-item">
-        <strong>Bat</strong>
-        <span id="valBat">--</span> %
-      </div>
-    </div>
+        document.getElementById('btn').addEventListener('click', async () => {
+            try {
+                log("Iniciando busca...");
+                
+                // Tenta buscar aceitando todos os dispositivos primeiro para evitar filtros errados
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [
+                        "0000181a-0000-1000-8000-00805f9b34fb", // Environmental Sensing
+                        "0000180f-0000-1000-8000-00805f9b34fb"  // Battery
+                    ]
+                });
 
-    <button id="btnConnect">Conectar e Ler</button>
-    <div id="status">Aguardando conexão...</div>
-  </div>
+                log(`Dispositivo selecionado: ${device.name}`);
+                log("Tentando conectar (pode demorar 5-10s)...");
 
-  <!-- Eruda para debug em celular -->
-  <script src="https://cdn.jsdelivr.net/npm/eruda@2.11.3/eruda.min.js"></script>
-  <script>eruda.init();</script>
+                const server = await device.gatt.connect();
+                log("Conectado!");
 
-  <script>
-    const btnConnect = document.getElementById('btnConnect');
-    const statusDiv = document.getElementById('status');
-    const valTemp = document.getElementById('valTemp');
-    const valHum = document.getElementById('valHum');
-    const valBat = document.getElementById('valBat');
+                /* 
+                   Se o firmware for ATC/PVVX, ele expõe o serviço 181a.
+                   Se for original, isso aqui vai falhar.
+                */
+                log("Buscando serviço de Temperatura (181a)...");
+                const service = await server.getPrimaryService("0000181a-0000-1000-8000-00805f9b34fb");
+                
+                log("Lendo característica de Temperatura...");
+                const char = await service.getCharacteristic("00002a6e-0000-1000-8000-00805f9b34fb");
+                
+                // Leitura contínua (Notificação) para não precisar ficar clicando
+                await char.startNotifications();
+                char.addEventListener('characteristicvaluechanged', (event) => {
+                    const value = event.target.value;
+                    const temp = value.getInt16(0, true) / 100;
+                    document.getElementById('result').innerText = `Temp: ${temp}°C`;
+                    log(`Nova leitura: ${temp}°C`);
+                });
 
-    btnConnect.addEventListener('click', async () => {
-      statusDiv.className = '';
-      statusDiv.textContent = 'Buscando dispositivo...';
-      
-      try {
-        // Solicita o dispositivo Bluetooth
-        // IMPORTANTE: Adicionamos o Battery Service (180f) também
-        const device = await navigator.bluetooth.requestDevice({
-          filters: [{ namePrefix: 'LYWSD03' }, { namePrefix: 'ATC' }, { namePrefix: 'Mi' }],
-          optionalServices: ['0000181a-0000-1000-8000-00805f9b34fb', 'battery_service'] 
+                log("Aguardando dados...");
+
+            } catch (error) {
+                log(`<span style="color:red">ERRO: ${error.message}</span>`);
+                if (error.message.includes("NetworkError")) {
+                    log("DICA: O dispositivo recusou a conexão. Reinicie o Bluetooth do celular ou troque o firmware.");
+                }
+                if (error.message.includes("No Services found")) {
+                    log("DICA: Conectou, mas não achou o serviço. Seu firmware provavelmente é Original (Bloqueado).");
+                }
+            }
         });
-
-        statusDiv.textContent = 'Conectando ao servidor GATT...';
-        const server = await device.gatt.connect();
-
-        // --- LEITURA DE TEMPERATURA E UMIDADE ---
-        statusDiv.textContent = 'Lendo sensores...';
-        
-        try {
-          // Serviço Environmental Sensing (0x181A)
-          const envService = await server.getPrimaryService('0000181a-0000-1000-8000-00805f9b34fb');
-          
-          // Característica Temperatura (0x2A6E)
-          const tempChar = await envService.getCharacteristic('00002a6e-0000-1000-8000-00805f9b34fb');
-          const tempVal = await tempChar.readValue();
-          const temperature = tempVal.getInt16(0, true) / 100;
-          valTemp.textContent = temperature.toFixed(1);
-
-          // Característica Umidade (0x2A6F)
-          const humChar = await envService.getCharacteristic('00002a6f-0000-1000-8000-00805f9b34fb');
-          const humVal = await humChar.readValue();
-          const humidity = humVal.getUint16(0, true) / 100;
-          valHum.textContent = humidity.toFixed(0);
-
-        } catch (e) {
-          throw new Error("Serviço de Sensores não encontrado. O firmware é original? Precisa ser ATC.");
-        }
-
-        // --- LEITURA DE BATERIA (Opcional) ---
-        try {
-          const batService = await server.getPrimaryService('battery_service');
-          const batChar = await batService.getCharacteristic('battery_level');
-          const batVal = await batChar.readValue();
-          valBat.textContent = batVal.getUint8(0);
-        } catch (e) {
-          console.log("Bateria não disponível");
-        }
-
-        statusDiv.textContent = 'Leitura concluída. Desconectando...';
-        // Pequeno delay para garantir que o usuário veja que conectou
-        setTimeout(() => {
-            device.gatt.disconnect();
-            statusDiv.textContent = 'Dispositivo desconectado.';
-        }, 1000);
-
-      } catch (error) {
-        console.error(error);
-        statusDiv.className = 'error';
-        statusDiv.textContent = error.message;
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
