@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Conectar dispositivo Bluetooth</title>
+</head>
+<body>
+  <h1>Conectar dispositivo Bluetooth</h1>
+  <button id="btnConnect">Conectar Bluetooth</button>
+  <pre id="output"></pre>
+
+  <script>
+    const output = document.getElementById('output');
+    const btnConnect = document.getElementById('btnConnect');
+
+    btnConnect.addEventListener('click', async () => {
+      try {
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: ['battery_service'] // exemplo de serviço
+        });
+        output.textContent = `Dispositivo selecionado: ${device.name}`;
+
+        const server = await device.gatt.connect();
+        output.textContent += '
+Conectado ao dispositivo';
+
+        // Exemplo: acessar serviço de bateria
+        const service = await server.getPrimaryService('battery_service');
+        const characteristic = await service.getCharacteristic('battery_level');
+        const value = await characteristic.readValue();
+        const batteryLevel = value.getUint8(0);
+        output.textContent += `
+Nível da bateria: ${batteryLevel}%`;
+
+        // Eventuais comandos para controlar dispositivo podem ser inseridos aqui
+
+      } catch (error) {
+        output.textContent = 'Erro: ' + error;
+      }
+    });
+  </script>
+</body>
+</html>
