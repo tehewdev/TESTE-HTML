@@ -45,11 +45,14 @@
       max-width: 400px;
       background: #333;
       border-radius: 5px;
+      max-height: 300px;
+      overflow-y: auto;
     }
 
     li {
       border-bottom: 1px solid #444;
       padding: 0.8rem 1rem;
+      word-break: break-word;
     }
 
     li:last-child {
@@ -78,14 +81,15 @@
 
     btnConnect.addEventListener('click', async () => {
       errorDiv.textContent = '';
-      deviceList.innerHTML = '';
 
       try {
         const device = await navigator.bluetooth.requestDevice({
           acceptAllDevices: true
         });
+
         console.log('Dispositivo selecionado:', device);
 
+        // Adiciona o dispositivo sem apagar os anteriores
         const listItem = document.createElement('li');
         listItem.textContent = `Nome: ${device.name || 'Sem nome'} - ID: ${device.id}`;
         deviceList.appendChild(listItem);
